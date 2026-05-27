@@ -1,0 +1,273 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: #1f2933;
+    background: #f4f6f8;
+}
+
+.contenedor {
+    width: min(1100px, 92%);
+    margin: 0 auto;
+    padding: 40px 0;
+}
+
+h1 {
+    margin: 0 0 12px;
+    font-size: 32px;
+}
+
+h2 {
+    margin: 4px 0 10px;
+    font-size: 22px;
+}
+
+p {
+    line-height: 1.5;
+}
+
+.boton {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 10px 14px;
+    border: 0;
+    color: #ffffff;
+    font: inherit;
+    text-decoration: none;
+    background: #2563eb;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.compacto {
+    margin-top: 0;
+    padding: 7px 10px;
+    font-size: 14px;
+}
+
+.secundario {
+    color: #1f2933;
+    background: #e5e7eb;
+}
+
+.peligro {
+    background: #b91c1c;
+}
+
+.volver {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.grilla-practicas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.chico {
+    max-width: 720px;
+}
+
+.form-inline {
+    display: inline-block;
+}
+
+.formulario,
+.panel {
+    margin-top: 24px;
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #d9e2ec;
+    border-radius: 8px;
+}
+
+.formulario {
+    display: grid;
+    gap: 10px;
+}
+
+.formulario label {
+    font-weight: bold;
+}
+
+.formulario input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #bcccdc;
+    border-radius: 6px;
+    font: inherit;
+}
+
+.formulario select,
+.formulario textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #bcccdc;
+    border-radius: 6px;
+    font: inherit;
+}
+
+.alerta {
+    padding: 12px 14px;
+    color: #7f1d1d;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+}
+
+.ok {
+    padding: 12px 14px;
+    color: #03543f;
+    background: #def7ec;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+}
+
+.acciones-superiores {
+    margin: 16px 0 24px;
+}
+
+.ayuda-login {
+    margin-top: 22px;
+    color: #52606d;
+}
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 20px 0;
+}
+
+.tabs a {
+    padding: 8px 12px;
+    color: #1f2933;
+    text-decoration: none;
+    background: #e5e7eb;
+    border-radius: 6px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+}
+
+.acciones-tabla {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+th,
+td {
+    padding: 10px;
+    border-bottom: 1px solid #d9e2ec;
+    text-align: left;
+}
+
+th {
+    color: #52606d;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.detalle {
+    margin-top: 24px;
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #d9e2ec;
+    border-radius: 8px;
+}
+
+.detalle-simple {
+    margin-top: 16px;
+}
+
+.layout-doble {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.tarjeta-practica {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #d9e2ec;
+    border-radius: 8px;
+}
+
+.etiqueta {
+    margin: 0;
+    color: #52606d;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+dl {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+}
+
+dt {
+    color: #52606d;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+dd {
+    margin: 2px 0 0;
+}
+
+.estado {
+    width: fit-content;
+    padding: 6px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 999px;
+}
+
+.disponible {
+    color: #03543f;
+    background: #def7ec;
+}
+
+.espera {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+@media print {
+    body {
+        background: #ffffff;
+    }
+
+    .no-print {
+        display: none;
+    }
+
+    .contenedor {
+        width: 100%;
+        padding: 0;
+    }
+}
+
+@media (max-width: 760px) {
+    .layout-doble {
+        grid-template-columns: 1fr;
+    }
+}

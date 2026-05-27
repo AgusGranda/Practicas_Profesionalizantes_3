@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><%= titulo %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <main class="contenedor">
+        <a class="volver" href="/">Volver al inicio</a>
+        <h1><%= titulo %></h1>
+
+        <section class="acciones-superiores">
+            <a class="boton" href="/profesor/practicas/nueva">Crear practica</a>
+        </section>
+
+        <section class="panel">
+            <h2>Mis practicas</h2>
+            <% if (!grupos.length) { %>
+                <p>Todavia no tenes practicas creadas.</p>
+            <% } else { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Practica</th>
+                            <th>Carrera</th>
+                            <th>Lugar</th>
+                            <th>Horario</th>
+                            <th>Cupos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% grupos.forEach(function(grupo) { %>
+                            <tr>
+                                <td><%= grupo.practica.nombre %></td>
+                                <td><%= grupo.carrera.nombre %></td>
+                                <td><%= grupo.lugar %></td>
+                                <td><%= grupo.dia %>, <%= grupo.horario %></td>
+                                <td><%= grupo.inscriptos %>/<%= grupo.cupoMaximo %></td>
+                                <td class="acciones-tabla">
+                                    <a class="boton compacto secundario" href="/profesor/practicas/<%= grupo.id %>/editar">Editar</a>
+                                    <form class="form-inline" action="/profesor/practicas/<%= grupo.id %>/eliminar" method="POST">
+                                        <button class="boton compacto peligro" type="submit">Eliminar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } %>
+        </section>
+
+        <section class="panel">
+            <h2>Alumnos inscriptos</h2>
+            <% if (!inscripciones.length) { %>
+                <p>Todavia no hay alumnos inscriptos en tus practicas.</p>
+            <% } else { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>DNI</th>
+                            <th>Apellido y nombre</th>
+                            <th>Practica</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% inscripciones.forEach(function(inscripcion) { %>
+                            <tr>
+                                <td><%= inscripcion.alumno.dni %></td>
+                                <td><%= inscripcion.alumno.apellidoNombre %></td>
+                                <td><%= inscripcion.grupo.practica.nombre %></td>
+                                <td><%= inscripcion.estado %></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } %>
+        </section>
+    </main>
+</body>
+</html>

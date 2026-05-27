@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><%= titulo %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <main class="contenedor">
+        <a class="volver" href="/practicas">Volver a practicas</a>
+        <h1><%= titulo %></h1>
+
+        <% if (error) { %>
+            <p class="alerta"><%= error %></p>
+        <% } %>
+
+        <section class="panel">
+            <h2><%= grupo.practica.nombre %></h2>
+            <p><%= grupo.carrera.nombre %> - <%= grupo.lugar %></p>
+            <p><%= grupo.dia %>, <%= grupo.horario %></p>
+            <% if (grupo.cupoDisponible > 0) { %>
+                <span class="estado disponible">Cupo disponible</span>
+            <% } else { %>
+                <span class="estado espera">Se inscribira en lista de espera</span>
+            <% } %>
+        </section>
+
+        <form class="formulario" action="/inscripcion/<%= grupo.id %>" method="POST">
+            <h2>Datos del alumno</h2>
+
+            <label for="dni">DNI</label>
+            <input id="dni" type="text" value="<%= alumno.dni %>" disabled>
+
+            <label for="apellidoNombre">Apellido y nombre</label>
+            <input id="apellidoNombre" name="apellidoNombre" type="text" value="<%= alumno.apellidoNombre %>" required>
+
+            <label for="fechaNacimiento">Fecha de nacimiento</label>
+            <input id="fechaNacimiento" name="fechaNacimiento" type="date" value="<%= alumno.fechaNacimiento %>" required>
+
+            <label for="email">Mail</label>
+            <input id="email" name="email" type="email" value="<%= alumno.email %>" required>
+
+            <label for="telefono">Telefono</label>
+            <input id="telefono" name="telefono" type="text" value="<%= alumno.telefono %>" required>
+
+            <button class="boton" type="submit">Confirmar inscripcion</button>
+        </form>
+    </main>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><%= titulo %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <main class="contenedor">
+        <a class="volver" href="/">Volver al inicio</a>
+        <h1><%= titulo %></h1>
+        <% if (!usuario) { %>
+            <p>Para inscribirte, ingresa con tu DNI como usuario y clave.</p>
+            <a class="boton" href="/login">Ingresar para inscribirme</a>
+        <% } else { %>
+            <p>Sesion iniciada: <strong><%= usuario.dni %></strong> (<%= usuario.rol %>)</p>
+            <% if (usuario.rol === 'ALUMNO') { %>
+                <a class="boton secundario" href="/alumno">Mi perfil</a>
+            <% } %>
+        <% } %>
+
+        <section class="grilla-practicas">
+            <% grupos.forEach(function(grupo) { %>
+                    <article class="tarjeta-practica">
+                        <div>
+                            <p class="etiqueta"><%= grupo.carrera.nombre %></p>
+                            <h2><%= grupo.practica.nombre %></h2>
+                            <p><%= grupo.practica.descripcion %></p>
+                        </div>
+
+                        <dl>
+                            <div>
+                                <dt>Lugar</dt>
+                                <dd><%= grupo.lugar %></dd>
+                            </div>
+                            <div>
+                                <dt>Dias</dt>
+                                <dd><%= grupo.dia %></dd>
+                            </div>
+                            <div>
+                                <dt>Horario</dt>
+                                <dd><%= grupo.horario %></dd>
+                            </div>
+                            <div>
+                                <dt>Cupos</dt>
+                                <dd><%= grupo.inscriptos %>/<%= grupo.cupoMaximo %></dd>
+                            </div>
+                            <div>
+                                <dt>Profesor</dt>
+                                <dd><%= grupo.profesor.apellidoNombre %></dd>
+                            </div>
+                        </dl>
+
+                        <% if (grupo.inscriptos >= grupo.cupoMaximo) { %>
+                            <span class="estado espera">Lista de espera</span>
+                        <% } else { %>
+                            <span class="estado disponible">Disponible</span>
+                        <% } %>
+
+                        <% if (usuario && usuario.rol === 'ALUMNO') { %>
+                            <a class="boton" href="/inscripcion/<%= grupo.id %>">Elegir esta practica</a>
+                        <% } %>
+                    </article>
+            <% }); %>
+        </section>
+    </main>
+</body>
+</html>

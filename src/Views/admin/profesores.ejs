@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><%= titulo %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <main class="contenedor">
+        <a class="volver" href="/">Volver al inicio</a>
+        <h1><%= titulo %></h1>
+        <p>Los profesores que crean su perfil quedan pendientes hasta que el admin los aprueba.</p>
+
+        <% if (!profesores.length) { %>
+            <section class="panel">
+                <p>No hay profesores pendientes de aprobacion.</p>
+            </section>
+        <% } else { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Apellido y nombre</th>
+                        <th>Mail</th>
+                        <th>Accion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% profesores.forEach(function(profesor) { %>
+                        <tr>
+                            <td><%= profesor.apellidoNombre %></td>
+                            <td><%= profesor.email %></td>
+                            <td>
+                                <form class="form-inline" action="/admin/profesores/<%= profesor.id %>/aprobar" method="POST">
+                                    <button class="boton compacto" type="submit">Aprobar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } %>
+    </main>
+</body>
+</html>
