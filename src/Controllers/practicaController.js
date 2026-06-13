@@ -155,9 +155,13 @@ const practicaController = {
         );
       }
 
-      estaInscripto = practica.inscripciones.some(
-        inscripcion => inscripcion.alumnoId === alumno.id
-      );
+      estaInscripto = Boolean(await Inscripcion.findOne({
+        where: {
+          practicaId: practica.id,
+          alumnoId: alumno.id,
+          estado: ['PENDIENTE', 'ACTIVA']
+        }
+      }));
     }
 
     res.render('practicas/detalle', {

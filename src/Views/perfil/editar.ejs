@@ -21,25 +21,44 @@
             <% } %>
 
             <form class="formulario formulario-grid" action="<%= profileBase %>/perfil?_method=PUT" method="POST">
-                <div class="campo">
-                    <label for="dni">DNI</label>
-                    <input id="dni" type="text" name="dni" value="<%= usuario.dni %>" inputmode="numeric" autocomplete="username" required>
-                </div>
+                <% if (user.rol === 'ALUMNO') { %>
+                    <div class="dato-bloqueado">
+                        <span>DNI</span>
+                        <strong><%= usuario.dni %></strong>
+                    </div>
+                <% } else { %>
+                    <div class="campo">
+                        <label for="dni">DNI</label>
+                        <input id="dni" type="text" name="dni" value="<%= usuario.dni %>" inputmode="numeric" autocomplete="username" required>
+                    </div>
+                <% } %>
 
                 <div class="campo">
                     <label for="email">Correo electrónico</label>
                     <input id="email" type="email" name="email" value="<%= usuario.email %>" autocomplete="email" required>
                 </div>
 
-                <div class="campo">
-                    <label for="apellido">Apellido</label>
-                    <input id="apellido" type="text" name="apellido" value="<%= usuario.apellido %>" autocomplete="family-name" required>
-                </div>
+                <% if (user.rol === 'ALUMNO') { %>
+                    <div class="dato-bloqueado">
+                        <span>Apellido</span>
+                        <strong><%= usuario.apellido %></strong>
+                    </div>
 
-                <div class="campo">
-                    <label for="nombre">Nombre</label>
-                    <input id="nombre" type="text" name="nombre" value="<%= usuario.nombre %>" autocomplete="given-name" required>
-                </div>
+                    <div class="dato-bloqueado">
+                        <span>Nombre</span>
+                        <strong><%= usuario.nombre %></strong>
+                    </div>
+                <% } else { %>
+                    <div class="campo">
+                        <label for="apellido">Apellido</label>
+                        <input id="apellido" type="text" name="apellido" value="<%= usuario.apellido %>" autocomplete="family-name" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="nombre">Nombre</label>
+                        <input id="nombre" type="text" name="nombre" value="<%= usuario.nombre %>" autocomplete="given-name" required>
+                    </div>
+                <% } %>
 
                 <div class="campo">
                     <label for="celular">Celular</label>
@@ -66,33 +85,39 @@
                     <section class="seccion-formulario campo-completo">
                         <div>
                             <h2>Información académica</h2>
-                            <p>Esta asignación determina en qué materia podés publicar prácticas.</p>
+                            <p>Podés agregar todas las carreras y materias en las que dictás clases.</p>
                         </div>
 
-                        <div class="formulario-grid">
-                            <div class="campo">
-                                <label for="carreraId">Carrera</label>
-                                <select id="carreraId" name="carreraId" required>
-                                    <option value="">Seleccioná una carrera</option>
-                                    <% carreras.forEach(carrera => { %>
-                                        <option value="<%= carrera.id %>" <%= String(profesor.carreraId || '') === String(carrera.id) ? 'selected' : '' %>><%= carrera.nombre %></option>
-                                    <% }) %>
-                                </select>
+                        <div class="campo campo-completo">
+                            <span class="grupo-etiqueta">Carreras</span>
+                            <div class="opciones-check">
+                                <% carreras.forEach(carrera => { %>
+                                    <label class="opcion-check">
+                                        <input
+                                            type="checkbox"
+                                            name="carreras"
+                                            value="<%= carrera.id %>"
+                                            data-carrera-check
+                                            <%= carrerasSeleccionadas.includes(carrera.id) ? 'checked' : '' %>>
+                                        <%= carrera.nombre %>
+                                    </label>
+                                <% }) %>
                             </div>
+                        </div>
 
-                            <div class="campo">
-                                <label for="materiaId">Materia</label>
-                                <select id="materiaId" name="materiaId" required>
-                                    <option value="">Seleccioná una materia</option>
-                                    <% materias.forEach(materia => { %>
-                                        <option
+                        <div class="campo campo-completo">
+                            <span class="grupo-etiqueta">Materias</span>
+                            <div class="lista-materias-perfil">
+                                <% materias.forEach(materia => { %>
+                                    <label class="opcion-check" data-materia-opcion data-carrera-id="<%= materia.carreraId %>">
+                                        <input
+                                            type="checkbox"
+                                            name="materias"
                                             value="<%= materia.id %>"
-                                            data-carrera-id="<%= materia.carreraId %>"
-                                            <%= String(profesor.materiaId || '') === String(materia.id) ? 'selected' : '' %>>
-                                            <%= materia.nombre %>
-                                        </option>
-                                    <% }) %>
-                                </select>
+                                            <%= materiasSeleccionadas.includes(materia.id) ? 'checked' : '' %>>
+                                        <span><%= materia.nombre %> <small>· <%= materia.carrera.nombre %></small></span>
+                                    </label>
+                                <% }) %>
                             </div>
                         </div>
                     </section>
@@ -103,16 +128,10 @@
                             <p>Tu carrera determina qué prácticas vas a ver disponibles.</p>
                         </div>
 
-                        <div class="formulario-grid">
-                            <div class="campo campo-completo">
-                                <label for="carreraId">Carrera</label>
-                                <select id="carreraId" name="carreraId" required>
-                                    <option value="">Seleccioná una carrera</option>
-                                    <% carreras.forEach(carrera => { %>
-                                        <option value="<%= carrera.id %>" <%= String(alumno.carreraId || '') === String(carrera.id) ? 'selected' : '' %>><%= carrera.nombre %></option>
-                                    <% }) %>
-                                </select>
-                            </div>
+                        <div class="dato-bloqueado">
+                            <span>Carrera</span>
+                            <strong><%= alumno && alumno.carrera ? alumno.carrera.nombre : 'Sin carrera asignada' %></strong>
+                            <small>La carrera se define al crear la cuenta y no puede modificarse desde el perfil.</small>
                         </div>
                     </section>
                 <% } %>
@@ -152,29 +171,25 @@
 
 <% if (user.rol === 'PROFESOR') { %>
     <script>
-        const carreraSelect = document.getElementById('carreraId');
-        const materiaSelect = document.getElementById('materiaId');
-        const materias = Array.from(materiaSelect.options).slice(1);
+        const carreras = Array.from(document.querySelectorAll('[data-carrera-check]'));
+        const materias = Array.from(document.querySelectorAll('[data-materia-opcion]'));
 
         function filtrarMaterias() {
-            const carreraId = carreraSelect.value;
+            const carrerasSeleccionadas = new Set(
+                carreras.filter(input => input.checked).map(input => input.value)
+            );
 
-            materias.forEach(option => {
-                const visible = option.dataset.carreraId === carreraId;
-                option.hidden = !visible;
-                option.disabled = !visible;
+            materias.forEach(label => {
+                const visible = carrerasSeleccionadas.has(label.dataset.carreraId);
+                const input = label.querySelector('input');
+
+                label.classList.toggle('oculto', !visible);
+                input.disabled = !visible;
+                if (!visible) input.checked = false;
             });
-
-            const seleccionada = materiaSelect.options[materiaSelect.selectedIndex];
-            if (seleccionada && seleccionada.value && seleccionada.disabled) {
-                materiaSelect.value = '';
-            }
         }
 
-        carreraSelect.addEventListener('change', () => {
-            materiaSelect.value = '';
-            filtrarMaterias();
-        });
+        carreras.forEach(input => input.addEventListener('change', filtrarMaterias));
         filtrarMaterias();
     </script>
 <% } %>

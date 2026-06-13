@@ -78,7 +78,7 @@
 
                     <% if (locals.user && user.rol === 'ALUMNO') { %>
                         <% if (estaInscripto) { %>
-                            <button class="boton boton-secundario" type="button" disabled>Ya estás inscripto</button>
+                            <button class="boton boton-secundario" type="button" disabled>Solicitud ya enviada</button>
                         <% } else if (practica.cuposDisponibles > 0) { %>
                             <form action="/inscripcion/practica/<%= practica.id %>" method="POST">
                                 <button class="boton" type="submit">Inscribirme ahora</button>
@@ -101,8 +101,8 @@
         <%
             const mensajes = {
                 'ya-inscripto': {
-                    titulo: 'Ya estás inscripto',
-                    texto: 'Tu inscripción a esta práctica ya se encuentra activa.'
+                    titulo: 'Solicitud ya enviada',
+                    texto: 'Ya tenés una solicitud pendiente o una inscripción activa para esta práctica.'
                 },
                 'sin-cupo': {
                     titulo: 'Sin cupos disponibles',

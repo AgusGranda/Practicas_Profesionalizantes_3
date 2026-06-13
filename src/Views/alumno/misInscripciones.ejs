@@ -15,8 +15,10 @@
                 </div>
             </header>
 
-            <% if (mensaje === 'inscripcion-ok') { %>
-                <div class="alerta-exito" role="status">Tu inscripción se realizó correctamente. Ya podés descargar el comprobante.</div>
+            <% if (mensaje === 'solicitud-enviada') { %>
+                <div class="alerta-exito" role="status">Tu solicitud fue enviada al profesor. Podés consultar su estado en esta sección.</div>
+            <% } else if (mensaje === 'solicitud-mail-error') { %>
+                <div class="alerta" role="alert">La solicitud quedó registrada, pero no pudimos enviar el aviso por correo. El profesor igualmente podrá verla en su panel.</div>
             <% } else if (mensaje === 'cancelacion-ok') { %>
                 <div class="alerta-exito" role="status">La inscripción fue cancelada correctamente.</div>
             <% } %>
@@ -45,10 +47,14 @@
                                         <span class="estado estado-<%= inscripcion.estado.toLowerCase() %>"><%= inscripcion.estado.toLowerCase() %></span>
                                     </td>
                                     <td>
-                                        <a class="boton boton-secundario boton-chico" href="/inscripcion/<%= inscripcion.id %>/comprobante">Descargar PDF</a>
+                                        <% if (inscripcion.estado === 'ACTIVA') { %>
+                                            <a class="boton boton-secundario boton-chico" href="/inscripcion/<%= inscripcion.id %>/comprobante">Descargar PDF</a>
+                                        <% } else { %>
+                                            <span class="celda-secundaria"><%= inscripcion.estado === 'PENDIENTE' ? 'Disponible al ser aceptado' : 'No disponible' %></span>
+                                        <% } %>
                                     </td>
                                     <td>
-                                        <% if (inscripcion.estado === 'ACTIVA') { %>
+                                        <% if (['ACTIVA', 'PENDIENTE'].includes(inscripcion.estado)) { %>
                                             <form class="form-inline" action="/inscripcion/<%= inscripcion.id %>?_method=DELETE" method="POST" onsubmit="return confirm('¿Cancelar tu inscripción a esta práctica?')">
                                                 <button class="boton boton-peligro boton-chico" type="submit">Cancelar</button>
                                             </form>

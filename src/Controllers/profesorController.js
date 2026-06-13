@@ -1,5 +1,8 @@
 const {
   Profesor,
+  ProfesorMateria,
+  Usuario,
+  Alumno,
   Practica,
   Materia,
   Carrera,
@@ -8,6 +11,13 @@ const {
   Inscripcion,
   sequelize
 } = require('../Data/models');
+const {
+  generarComprobantePdf
+} = require('../Services/comprobantePdfService');
+const {
+  enviarInscripcionAceptada,
+  enviarInscripcionRechazada
+} = require('../Services/mailService');
 
 function validarPeriodo({
   fechaInicio,
@@ -33,14 +43,26 @@ async function buscarProfesor(userId) {
 }
 
 async function cargarMateriasProfesor(profesor) {
-  if (!profesor || !profesor.materiaId || !profesor.carreraId) {
+  if (!profesor) {
+    return [];
+  }
+
+  const relaciones = await ProfesorMateria.findAll({
+    where: { profesorId: profesor.id }
+  });
+  const materiasIds = relaciones.map(item => item.materiaId);
+
+  if (materiasIds.length === 0 && profesor.materiaId) {
+    materiasIds.push(profesor.materiaId);
+  }
+
+  if (materiasIds.length === 0) {
     return [];
   }
 
   return Materia.findAll({
     where: {
-      id: profesor.materiaId,
-      carreraId: profesor.carreraId,
+      id: materiasIds,
       estado: 'ACTIVA'
     },
     include: [{ model: Carrera, as: 'carrera' }]
@@ -54,6 +76,32 @@ async function datosFormulario(profesor) {
   ]);
 
   return { materias, dias };
+}
+
+function includeSolicitud() {
+  return [
+    {
+      model: Alumno,
+      as: 'alumno',
+      include: [{ model: Usuario, as: 'usuario' }]
+    },
+    {
+      model: Practica,
+      as: 'practica',
+      include: [
+        {
+          model: Materia,
+          as: 'materia',
+          include: [{ model: Carrera, as: 'carrera' }]
+        },
+        {
+          model: Profesor,
+          as: 'profesor',
+          include: [{ model: Usuario, as: 'usuario' }]
+        }
+      ]
+    }
+  ];
 }
 
 const profesorController = {
@@ -77,6 +125,146 @@ const profesorController = {
     });
 
     res.render('profesor/misPracticas', { practicas });
+  },
+
+  solicitudes: async (req, res) => {
+    const profesor = await buscarProfesor(req.session.user.id);
+
+    const solicitudes = await Inscripcion.findAll({
+      where: { estado: 'PENDIENTE' },
+      include: [
+        {
+          model: Alumno,
+          as: 'alumno',
+          include: [{ model: Usuario, as: 'usuario' }]
+        },
+        {
+          model: Practica,
+          as: 'practica',
+          where: { profesorId: profesor.id },
+          include: [{
+            model: Materia,
+            as: 'materia',
+            include: [{ model: Carrera, as: 'carrera' }]
+          }]
+        }
+      ],
+      order: [['fechaInscripcion', 'ASC']]
+    });
+
+    return res.render('profesor/solicitudes', {
+      solicitudes,
+      mensaje: req.query.mensaje || null
+    });
+  },
+
+  aprobarSolicitud: async (req, res) => {
+    try {
+      const profesor = await buscarProfesor(req.session.user.id);
+
+      const resultado = await sequelize.transaction(async (transaction) => {
+        const inscripcion = await Inscripcion.findByPk(req.params.id, {
+          transaction,
+          lock: transaction.LOCK.UPDATE
+        });
+
+        if (!inscripcion || inscripcion.estado !== 'PENDIENTE') {
+          return 'no_disponible';
+        }
+
+        const practica = await Practica.findByPk(inscripcion.practicaId, {
+          transaction,
+          lock: transaction.LOCK.UPDATE
+        });
+
+        if (!practica || practica.profesorId !== profesor.id) {
+          return 'no_autorizado';
+        }
+
+        const inscripcionesActivas = await Inscripcion.count({
+          where: {
+            practicaId: practica.id,
+            estado: 'ACTIVA'
+          },
+          transaction
+        });
+
+        if (inscripcionesActivas >= practica.cupo) {
+          return 'sin_cupo';
+        }
+
+        await inscripcion.update({
+          estado: 'ACTIVA',
+          fechaResolucion: new Date()
+        }, { transaction });
+
+        return 'aceptada';
+      });
+
+      if (resultado !== 'aceptada') {
+        return res.redirect(`/profesor/solicitudes?mensaje=${resultado}`);
+      }
+
+      const inscripcion = await Inscripcion.findByPk(req.params.id, {
+        include: includeSolicitud()
+      });
+      let mailEnviado = true;
+
+      try {
+        const pdf = await generarComprobantePdf(inscripcion);
+        await enviarInscripcionAceptada({ inscripcion, pdf });
+        await inscripcion.update({ certificadoEnviado: true });
+      } catch (mailError) {
+        console.error('No se pudo enviar el comprobante al alumno:', mailError);
+        mailEnviado = false;
+      }
+
+      return res.redirect(
+        `/profesor/solicitudes?mensaje=${mailEnviado ? 'aceptada' : 'aceptada-mail-error'}`
+      );
+    } catch (error) {
+      console.error(error);
+      return res.redirect('/profesor/solicitudes?mensaje=error');
+    }
+  },
+
+  rechazarSolicitud: async (req, res) => {
+    try {
+      const profesor = await buscarProfesor(req.session.user.id);
+      const inscripcion = await Inscripcion.findByPk(req.params.id, {
+        include: [{
+          model: Practica,
+          as: 'practica',
+          where: { profesorId: profesor.id }
+        }]
+      });
+
+      if (!inscripcion || inscripcion.estado !== 'PENDIENTE') {
+        return res.redirect('/profesor/solicitudes?mensaje=no-disponible');
+      }
+
+      await inscripcion.update({
+        estado: 'RECHAZADA',
+        fechaResolucion: new Date()
+      });
+
+      const inscripcionCompleta = await Inscripcion.findByPk(inscripcion.id, {
+        include: includeSolicitud()
+      });
+
+      try {
+        await enviarInscripcionRechazada({
+          inscripcion: inscripcionCompleta
+        });
+      } catch (mailError) {
+        console.error('No se pudo avisar el rechazo al alumno:', mailError);
+      }
+
+      return res.redirect('/profesor/solicitudes?mensaje=rechazada');
+    } catch (error) {
+      console.error(error);
+      return res.redirect('/profesor/solicitudes?mensaje=error');
+    }
   },
 
   crearPracticaView: async (req, res) => {
@@ -122,7 +310,11 @@ const profesorController = {
         return res.status(403).send('No existe perfil de profesor para este usuario');
       }
 
-      if (Number(materiaId) !== profesor.materiaId || datos.materias.length === 0) {
+      const materiaPermitida = datos.materias.some(
+        materia => materia.id === Number(materiaId)
+      );
+
+      if (!materiaPermitida) {
         return res.render('profesor/practicas/crear', {
           ...datos,
           formData: req.body,
@@ -245,7 +437,11 @@ const profesorController = {
         error: mensaje
       });
 
-      if (Number(materiaId) !== profesor.materiaId || datos.materias.length === 0) {
+      const materiaPermitida = datos.materias.some(
+        materia => materia.id === Number(materiaId)
+      );
+
+      if (!materiaPermitida) {
         return renderError('Solo podés asignar la práctica a la materia indicada en tu perfil.');
       }
 

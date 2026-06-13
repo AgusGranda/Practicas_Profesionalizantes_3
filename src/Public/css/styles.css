@@ -400,6 +400,13 @@ h3 {
     color: var(--texto-suave);
 }
 
+.enlace-campo {
+    align-self: flex-end;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
 .campo input,
 .campo select,
 .campo textarea {
@@ -590,6 +597,7 @@ tbody tr:hover {
 
 .estado-inactiva,
 .estado-cancelada,
+.estado-rechazada,
 .estado-rechazado {
     color: var(--rojo);
     background: var(--rojo-fondo);
@@ -964,6 +972,42 @@ tbody tr:hover {
     font-size: 0.88rem;
 }
 
+.lista-materias-perfil {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.opcion-check small {
+    color: var(--texto-suave);
+    font-weight: 600;
+}
+
+.dato-bloqueado {
+    padding: 16px;
+    display: grid;
+    gap: 4px;
+    background: var(--azul-50);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+}
+
+.dato-bloqueado span {
+    color: var(--texto-suave);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.dato-bloqueado strong {
+    color: var(--azul-950);
+}
+
+.dato-bloqueado small {
+    color: var(--texto-suave);
+}
+
 .oculto {
     display: none !important;
 }
@@ -1026,6 +1070,7 @@ tbody tr:hover {
     .grilla-practicas,
     .formulario-grid,
     .lista-datos,
+    .lista-materias-perfil,
     .auth-registro .auth-formulario {
         grid-template-columns: 1fr;
     }

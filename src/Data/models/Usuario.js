@@ -54,6 +54,14 @@ module.exports = (sequelize, DataTypes) => {
     rolId: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    resetPasswordTokenHash: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    resetPasswordExpiresAt: {
+      type: DataTypes.DATE,
+      allowNull: true
     }
   }, {
     tableName: 'usuarios',

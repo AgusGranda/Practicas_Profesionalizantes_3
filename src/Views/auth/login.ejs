@@ -12,6 +12,10 @@
                     <div class="alerta" role="alert"><%= error %></div>
                 <% } %>
 
+                <% if (success) { %>
+                    <div class="alerta-exito" role="status"><%= success %></div>
+                <% } %>
+
                 <form class="auth-formulario" action="/auth/login" method="POST">
                     <div class="campo">
                         <label for="dni">DNI</label>
@@ -21,6 +25,7 @@
                     <div class="campo">
                         <label for="password">Contraseña</label>
                         <input id="password" type="password" name="password" autocomplete="current-password" placeholder="Ingresá tu contraseña" required>
+                        <a class="enlace-campo" href="/auth/forgot-password">Olvidé mi contraseña</a>
                     </div>
 
                     <button class="boton" type="submit">Ingresar</button>

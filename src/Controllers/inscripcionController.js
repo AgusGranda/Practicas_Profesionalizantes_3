@@ -11,12 +11,20 @@ const {
 const {
   generarComprobantePdf
 } = require('../Services/comprobantePdfService');
+const {
+  enviarSolicitudInscripcion
+} = require('../Services/mailService');
+
+function appUrl() {
+  return process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+}
 
 const inscripcionController = {
   inscribirse: async (req, res) => {
     try {
       const alumno = await Alumno.findOne({
-        where: { usuarioId: req.session.user.id }
+        where: { usuarioId: req.session.user.id },
+        include: [{ model: Usuario, as: 'usuario' }]
       });
 
       if (!alumno) {
@@ -24,29 +32,36 @@ const inscripcionController = {
       }
 
       if (!alumno.carreraId) {
-        return res.redirect('/alumno/perfil?completarCarrera=1');
+        return res.redirect('/alumno/perfil');
       }
 
       const resultado = await sequelize.transaction(async (transaction) => {
         const practica = await Practica.findByPk(req.params.practicaId, {
-          include: [{
-            model: Materia,
-            as: 'materia',
-            attributes: ['carreraId']
-          }],
+          include: [
+            {
+              model: Materia,
+              as: 'materia',
+              attributes: ['carreraId']
+            },
+            {
+              model: Profesor,
+              as: 'profesor',
+              include: [{ model: Usuario, as: 'usuario' }]
+            }
+          ],
           transaction,
           lock: transaction.LOCK.UPDATE
         });
 
         if (!practica || practica.estado !== 'ACTIVA') {
-          return 'no_disponible';
+          return { estado: 'no_disponible' };
         }
 
         if (practica.materia.carreraId !== alumno.carreraId) {
-          return 'carrera_no_corresponde';
+          return { estado: 'carrera_no_corresponde' };
         }
 
-        const yaInscripto = await Inscripcion.findOne({
+        const solicitudExistente = await Inscripcion.findOne({
           where: {
             alumnoId: alumno.id,
             practicaId: practica.id
@@ -54,8 +69,11 @@ const inscripcionController = {
           transaction
         });
 
-        if (yaInscripto && yaInscripto.estado === 'ACTIVA') {
-          return 'ya_inscripto';
+        if (
+          solicitudExistente &&
+          ['PENDIENTE', 'ACTIVA'].includes(solicitudExistente.estado)
+        ) {
+          return { estado: 'ya_inscripto' };
         }
 
         const inscripcionesActivas = await Inscripcion.count({
@@ -67,46 +85,69 @@ const inscripcionController = {
         });
 
         if (inscripcionesActivas >= practica.cupo) {
-          return 'sin_cupo';
+          return { estado: 'sin_cupo' };
         }
 
-        if (yaInscripto) {
-          await yaInscripto.update({
-            estado: 'ACTIVA',
-            fechaInscripcion: new Date()
+        let inscripcion;
+
+        if (solicitudExistente) {
+          inscripcion = await solicitudExistente.update({
+            estado: 'PENDIENTE',
+            fechaInscripcion: new Date(),
+            fechaResolucion: null,
+            certificadoEnviado: false
           }, { transaction });
         } else {
-          await Inscripcion.create({
+          inscripcion = await Inscripcion.create({
             alumnoId: alumno.id,
             practicaId: practica.id,
-            estado: 'ACTIVA',
+            estado: 'PENDIENTE',
             certificadoEnviado: false
           }, { transaction });
         }
 
-        return 'inscripto';
+        return {
+          estado: 'pendiente',
+          inscripcionId: inscripcion.id,
+          practica
+        };
       });
 
       const mensajes = {
         ya_inscripto: 'ya-inscripto',
         sin_cupo: 'sin-cupo',
-        no_disponible: 'no-disponible',
-        carrera_no_corresponde: 'carrera-no-corresponde'
+        no_disponible: 'no-disponible'
       };
 
-      if (resultado !== 'inscripto') {
-        if (resultado === 'carrera_no_corresponde') {
-          return res.redirect(
-            '/alumno/practicas-disponibles?mensaje=carrera-no-corresponde'
-          );
-        }
-
+      if (resultado.estado === 'carrera_no_corresponde') {
         return res.redirect(
-          `/practicas/${req.params.practicaId}?mensaje=${mensajes[resultado]}`
+          '/alumno/practicas-disponibles?mensaje=carrera-no-corresponde'
         );
       }
 
-      return res.redirect('/alumno/mis-inscripciones?mensaje=inscripcion-ok');
+      if (resultado.estado !== 'pendiente') {
+        return res.redirect(
+          `/practicas/${req.params.practicaId}?mensaje=${mensajes[resultado.estado]}`
+        );
+      }
+
+      let mailError = false;
+
+      try {
+        await enviarSolicitudInscripcion({
+          profesor: resultado.practica.profesor.usuario,
+          alumno: alumno.usuario,
+          practica: resultado.practica,
+          panelUrl: `${appUrl()}/profesor/solicitudes`
+        });
+      } catch (error) {
+        console.error('No se pudo avisar al profesor sobre la solicitud:', error);
+        mailError = true;
+      }
+
+      return res.redirect(
+        `/alumno/mis-inscripciones?mensaje=${mailError ? 'solicitud-mail-error' : 'solicitud-enviada'}`
+      );
     } catch (error) {
       console.error(error);
       return res.redirect(
@@ -125,11 +166,15 @@ const inscripcionController = {
     }
 
     await Inscripcion.update(
-      { estado: 'CANCELADA' },
+      {
+        estado: 'CANCELADA',
+        fechaResolucion: new Date()
+      },
       {
         where: {
           id: req.params.id,
-          alumnoId: alumno.id
+          alumnoId: alumno.id,
+          estado: ['PENDIENTE', 'ACTIVA']
         }
       }
     );
@@ -146,7 +191,8 @@ const inscripcionController = {
       const inscripcion = await Inscripcion.findOne({
         where: {
           id: req.params.id,
-          alumnoId: alumno.id
+          alumnoId: alumno.id,
+          estado: 'ACTIVA'
         },
         include: [
           {
@@ -174,7 +220,7 @@ const inscripcionController = {
       });
 
       if (!inscripcion) {
-        return res.status(404).send('Inscripción no encontrada');
+        return res.status(404).send('Comprobante no disponible');
       }
 
       const pdf = await generarComprobantePdf(inscripcion);

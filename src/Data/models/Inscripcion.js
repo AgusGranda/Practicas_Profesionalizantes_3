@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     estado: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 'ACTIVA'
+      defaultValue: 'PENDIENTE'
     },
     certificadoEnviado: {
       type: DataTypes.BOOLEAN,
@@ -27,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     certificadoPath: {
       type: DataTypes.STRING,
+      allowNull: true
+    },
+    fechaResolucion: {
+      type: DataTypes.DATE,
       allowNull: true
     }
   }, {

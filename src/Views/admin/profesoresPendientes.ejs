@@ -39,8 +39,12 @@
                                     </td>
                                     <td><%= profesor.usuario.email %></td>
                                     <td>
-                                        <div class="celda-principal"><%= profesor.carrera ? profesor.carrera.nombre : 'Sin carrera asignada' %></div>
-                                        <div class="celda-secundaria"><%= profesor.materia ? profesor.materia.nombre : 'Sin materia asignada' %></div>
+                                        <div class="celda-principal">
+                                            <%= profesor.carreras.length > 0 ? profesor.carreras.map(item => item.carrera.nombre).join(', ') : 'Sin carrera asignada' %>
+                                        </div>
+                                        <div class="celda-secundaria">
+                                            <%= profesor.materias.length > 0 ? profesor.materias.map(item => item.materia.nombre).join(', ') : 'Sin materia asignada' %>
+                                        </div>
                                     </td>
                                     <td><span class="estado estado-pendiente">Pendiente</span></td>
                                     <td>

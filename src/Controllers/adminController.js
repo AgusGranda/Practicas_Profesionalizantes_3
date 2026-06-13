@@ -158,8 +158,14 @@ const adminController = {
           as: 'usuario',
           where: { estado: 'PENDIENTE' }
         },
-        { model: Carrera, as: 'carrera' },
-        { model: Materia, as: 'materia' }
+        {
+          association: 'carreras',
+          include: [{ model: Carrera, as: 'carrera' }]
+        },
+        {
+          association: 'materias',
+          include: [{ model: Materia, as: 'materia' }]
+        }
       ]
     });
 

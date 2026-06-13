@@ -37,6 +37,9 @@ module.exports = (sequelize, DataTypes) => {
         min: 1
       }
     },
+    cuposDisponibles: {
+      type: DataTypes.VIRTUAL
+    },
     materiaId: {
       type: DataTypes.INTEGER,
       allowNull: false

@@ -1,0 +1,76 @@
+<%- include('../partials/head', { title: 'Solicitudes de inscripción' }) %>
+<body>
+<div class="sitio">
+    <%- include('../partials/header', { active: 'solicitudes' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Solicitudes de inscripción</h1>
+                    <p>Revisá los alumnos interesados y decidí quiénes ingresan a cada práctica.</p>
+                </div>
+                <a class="boton boton-secundario" href="/profesor/dashboard">Volver al panel</a>
+            </header>
+
+            <% if (mensaje === 'aceptada') { %>
+                <div class="alerta-exito">La solicitud fue aceptada y el comprobante se envió al alumno.</div>
+            <% } else if (mensaje === 'aceptada-mail-error') { %>
+                <div class="alerta">La solicitud fue aceptada, pero no se pudo enviar el correo. El alumno puede descargar el comprobante desde su panel.</div>
+            <% } else if (mensaje === 'rechazada') { %>
+                <div class="alerta-exito">La solicitud fue rechazada.</div>
+            <% } else if (mensaje === 'sin_cupo') { %>
+                <div class="alerta">La práctica ya no tiene cupos disponibles.</div>
+            <% } else if (mensaje) { %>
+                <div class="alerta">No se pudo procesar la solicitud.</div>
+            <% } %>
+
+            <% if (solicitudes.length > 0) { %>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Alumno</th>
+                                <th>Práctica</th>
+                                <th>Solicitud</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% solicitudes.forEach(solicitud => { %>
+                                <tr>
+                                    <td>
+                                        <div class="celda-principal"><%= solicitud.alumno.usuario.apellido %>, <%= solicitud.alumno.usuario.nombre %></div>
+                                        <div class="celda-secundaria"><%= solicitud.alumno.usuario.email %> · DNI <%= solicitud.alumno.usuario.dni %></div>
+                                    </td>
+                                    <td>
+                                        <div class="celda-principal"><%= solicitud.practica.titulo %></div>
+                                        <div class="celda-secundaria"><%= solicitud.practica.materia.nombre %> · <%= solicitud.practica.materia.carrera.nombre %></div>
+                                    </td>
+                                    <td><%= solicitud.fechaInscripcion %></td>
+                                    <td>
+                                        <div class="acciones-tabla">
+                                            <form class="form-inline" action="/profesor/solicitudes/<%= solicitud.id %>/aprobar" method="POST">
+                                                <button class="boton boton-chico" type="submit">Aceptar</button>
+                                            </form>
+                                            <form class="form-inline" action="/profesor/solicitudes/<%= solicitud.id %>/rechazar" method="POST" onsubmit="return confirm('¿Rechazar esta solicitud?')">
+                                                <button class="boton boton-peligro boton-chico" type="submit">Rechazar</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <section class="vacio">
+                    <div class="vacio-icono" aria-hidden="true">S</div>
+                    <h2>No hay solicitudes pendientes</h2>
+                    <p>Las nuevas solicitudes de alumnos aparecerán en esta sección.</p>
+                </section>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>

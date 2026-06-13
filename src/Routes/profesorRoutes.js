@@ -11,6 +11,10 @@ router.get('/dashboard', profesorController.dashboard);
 
 router.get('/mis-practicas', profesorController.misPracticas);
 
+router.get('/solicitudes', profesorController.solicitudes);
+router.post('/solicitudes/:id/aprobar', profesorController.aprobarSolicitud);
+router.post('/solicitudes/:id/rechazar', profesorController.rechazarSolicitud);
+
 router.get('/practicas/crear', profesorController.crearPracticaView);
 router.post('/practicas/crear', profesorController.crearPractica);
 

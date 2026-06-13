@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
+    "mail:check": "node scripts/checkMail.js",
     "migrate": "npx sequelize-cli db:migrate",
     "seeders": "npx sequelize-cli db:seed:all",
     "migrate:undo": "npx sequelize-cli db:migrate:undo:all"
