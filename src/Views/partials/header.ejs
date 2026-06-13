@@ -1,0 +1,38 @@
+<header class="encabezado-sitio">
+    <div class="contenedor barra-navegacion">
+        <%- include('brand') %>
+
+        <% if (locals.user) { %>
+            <nav class="navegacion" aria-label="Navegación principal">
+                <% if (user.rol === 'ADMIN') { %>
+                    <a class="<%= locals.active === 'dashboard' ? 'activo' : '' %>" href="/admin/dashboard">Inicio</a>
+                    <a class="<%= locals.active === 'carreras' ? 'activo' : '' %>" href="/admin/carreras">Carreras</a>
+                    <a class="<%= locals.active === 'materias' ? 'activo' : '' %>" href="/admin/materias">Materias</a>
+                    <a class="<%= locals.active === 'profesores' ? 'activo' : '' %>" href="/admin/profesores-pendientes">Profesores</a>
+                <% } else if (user.rol === 'PROFESOR') { %>
+                    <a class="<%= locals.active === 'dashboard' ? 'activo' : '' %>" href="/profesor/dashboard">Inicio</a>
+                    <a class="<%= locals.active === 'practicas' ? 'activo' : '' %>" href="/profesor/mis-practicas">Mis prácticas</a>
+                    <a class="<%= locals.active === 'crear' ? 'activo' : '' %>" href="/profesor/practicas/crear">Nueva práctica</a>
+                    <a class="<%= locals.active === 'perfil' ? 'activo' : '' %>" href="/profesor/perfil">Mi perfil</a>
+                <% } else { %>
+                    <a class="<%= locals.active === 'dashboard' ? 'activo' : '' %>" href="/alumno/dashboard">Inicio</a>
+                    <a class="<%= locals.active === 'disponibles' ? 'activo' : '' %>" href="/alumno/practicas-disponibles">Prácticas</a>
+                    <a class="<%= locals.active === 'inscripciones' ? 'activo' : '' %>" href="/alumno/mis-inscripciones">Inscripciones</a>
+                    <a class="<%= locals.active === 'perfil' ? 'activo' : '' %>" href="/alumno/perfil">Mi perfil</a>
+                <% } %>
+            </nav>
+
+            <div class="usuario-nav">
+                <div class="usuario-datos">
+                    <strong><%= user.nombre %> <%= user.apellido %></strong>
+                    <span><%= user.rol.toLowerCase() %></span>
+                </div>
+                <form action="/auth/logout" method="POST">
+                    <button class="boton boton-texto boton-chico" type="submit">Salir</button>
+                </form>
+            </div>
+        <% } else { %>
+            <a class="boton boton-secundario boton-chico" href="/auth/login">Ingresar</a>
+        <% } %>
+    </div>
+</header>

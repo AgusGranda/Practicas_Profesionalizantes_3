@@ -1,0 +1,64 @@
+<%- include('../../partials/head', { title: 'Carreras' }) %>
+<body>
+<div class="sitio">
+    <%- include('../../partials/header', { active: 'carreras' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Carreras</h1>
+                    <p>Administrá las carreras que forman parte de la oferta académica.</p>
+                </div>
+                <div class="acciones-superiores">
+                    <a class="boton boton-secundario" href="/admin/dashboard">Volver al panel</a>
+                    <a class="boton" href="/admin/carreras/crear">Nueva carrera</a>
+                </div>
+            </header>
+
+            <% if (carreras.length > 0) { %>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% carreras.forEach(carrera => { %>
+                                <tr>
+                                    <td class="celda-principal"><%= carrera.nombre %></td>
+                                    <td class="celda-secundaria"><%= carrera.descripcion || 'Sin descripción' %></td>
+                                    <td>
+                                        <span class="estado estado-<%= carrera.estado.toLowerCase() %>"><%= carrera.estado.toLowerCase() %></span>
+                                    </td>
+                                    <td>
+                                        <div class="acciones-tabla">
+                                            <a class="boton boton-secundario boton-chico" href="/admin/carreras/<%= carrera.id %>/editar">Editar</a>
+                                            <% if (carrera.estado === 'ACTIVA') { %>
+                                                <form class="form-inline" action="/admin/carreras/<%= carrera.id %>?_method=DELETE" method="POST" onsubmit="return confirm('¿Desactivar esta carrera?')">
+                                                    <button class="boton boton-peligro boton-chico" type="submit">Desactivar</button>
+                                                </form>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <section class="vacio">
+                    <div class="vacio-icono" aria-hidden="true">C</div>
+                    <h2>Todavía no hay carreras</h2>
+                    <p>Creá la primera carrera para comenzar a organizar las materias.</p>
+                    <a class="boton" href="/admin/carreras/crear">Crear carrera</a>
+                </section>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('../../partials/footer') %>

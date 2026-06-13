@@ -1,0 +1,46 @@
+<%- include('../../partials/head', { title: 'Editar carrera' }) %>
+<body>
+<div class="sitio">
+    <%- include('../../partials/header', { active: 'carreras' }) %>
+
+    <main class="contenido">
+        <div class="contenido-estrecho">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Editar carrera</h1>
+                    <p>Actualizá la información o cambiá el estado de la carrera.</p>
+                </div>
+            </header>
+
+            <% if (error) { %>
+                <div class="alerta" role="alert"><%= error %></div>
+            <% } %>
+
+            <form class="formulario formulario-grid" action="/admin/carreras/<%= carrera.id %>?_method=PUT" method="POST">
+                <div class="campo campo-completo">
+                    <label for="nombre">Nombre de la carrera</label>
+                    <input id="nombre" type="text" name="nombre" value="<%= carrera.nombre %>" required autofocus>
+                </div>
+
+                <div class="campo campo-completo">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" name="descripcion"><%= carrera.descripcion || '' %></textarea>
+                </div>
+
+                <div class="campo">
+                    <label for="estado">Estado</label>
+                    <select id="estado" name="estado">
+                        <option value="ACTIVA" <%= carrera.estado === 'ACTIVA' ? 'selected' : '' %>>Activa</option>
+                        <option value="INACTIVA" <%= carrera.estado === 'INACTIVA' ? 'selected' : '' %>>Inactiva</option>
+                    </select>
+                </div>
+
+                <div class="formulario-acciones">
+                    <button class="boton" type="submit">Guardar cambios</button>
+                    <a class="boton boton-secundario" href="/admin/carreras">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <%- include('../../partials/footer') %>

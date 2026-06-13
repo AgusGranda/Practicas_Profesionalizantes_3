@@ -1,0 +1,182 @@
+<%- include('../partials/head', { title: 'Mi perfil' }) %>
+<body>
+<div class="sitio">
+    <%- include('../partials/header', { active: 'perfil' }) %>
+
+    <main class="contenido">
+        <div class="contenido-estrecho">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Mi perfil</h1>
+                    <p>Actualizá tus datos personales y la información de acceso a tu cuenta.</p>
+                </div>
+            </header>
+
+            <% if (error) { %>
+                <div class="alerta" role="alert"><%= error %></div>
+            <% } %>
+
+            <% if (success) { %>
+                <div class="alerta-exito" role="status">Tus datos se actualizaron correctamente.</div>
+            <% } %>
+
+            <form class="formulario formulario-grid" action="<%= profileBase %>/perfil?_method=PUT" method="POST">
+                <div class="campo">
+                    <label for="dni">DNI</label>
+                    <input id="dni" type="text" name="dni" value="<%= usuario.dni %>" inputmode="numeric" autocomplete="username" required>
+                </div>
+
+                <div class="campo">
+                    <label for="email">Correo electrónico</label>
+                    <input id="email" type="email" name="email" value="<%= usuario.email %>" autocomplete="email" required>
+                </div>
+
+                <div class="campo">
+                    <label for="apellido">Apellido</label>
+                    <input id="apellido" type="text" name="apellido" value="<%= usuario.apellido %>" autocomplete="family-name" required>
+                </div>
+
+                <div class="campo">
+                    <label for="nombre">Nombre</label>
+                    <input id="nombre" type="text" name="nombre" value="<%= usuario.nombre %>" autocomplete="given-name" required>
+                </div>
+
+                <div class="campo">
+                    <label for="celular">Celular</label>
+                    <input id="celular" type="tel" name="celular" value="<%= usuario.celular || '' %>" autocomplete="tel">
+                </div>
+
+                <div class="campo">
+                    <label for="fechaNacimiento">Fecha de nacimiento</label>
+                    <input id="fechaNacimiento" type="date" name="fechaNacimiento" value="<%= usuario.fechaNacimiento || '' %>">
+                </div>
+
+                <div class="campo">
+                    <label for="genero">Género</label>
+                    <% const generoActual = String(usuario.genero || '').toUpperCase(); %>
+                    <select id="genero" name="genero">
+                        <option value="" <%= !generoActual ? 'selected' : '' %>>Prefiero no indicarlo</option>
+                        <option value="FEMENINO" <%= generoActual === 'FEMENINO' ? 'selected' : '' %>>Femenino</option>
+                        <option value="MASCULINO" <%= generoActual === 'MASCULINO' ? 'selected' : '' %>>Masculino</option>
+                        <option value="OTRO" <%= generoActual === 'OTRO' ? 'selected' : '' %>>Otro</option>
+                    </select>
+                </div>
+
+                <% if (user.rol === 'PROFESOR') { %>
+                    <section class="seccion-formulario campo-completo">
+                        <div>
+                            <h2>Información académica</h2>
+                            <p>Esta asignación determina en qué materia podés publicar prácticas.</p>
+                        </div>
+
+                        <div class="formulario-grid">
+                            <div class="campo">
+                                <label for="carreraId">Carrera</label>
+                                <select id="carreraId" name="carreraId" required>
+                                    <option value="">Seleccioná una carrera</option>
+                                    <% carreras.forEach(carrera => { %>
+                                        <option value="<%= carrera.id %>" <%= String(profesor.carreraId || '') === String(carrera.id) ? 'selected' : '' %>><%= carrera.nombre %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+
+                            <div class="campo">
+                                <label for="materiaId">Materia</label>
+                                <select id="materiaId" name="materiaId" required>
+                                    <option value="">Seleccioná una materia</option>
+                                    <% materias.forEach(materia => { %>
+                                        <option
+                                            value="<%= materia.id %>"
+                                            data-carrera-id="<%= materia.carreraId %>"
+                                            <%= String(profesor.materiaId || '') === String(materia.id) ? 'selected' : '' %>>
+                                            <%= materia.nombre %>
+                                        </option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+                <% } else if (user.rol === 'ALUMNO') { %>
+                    <section class="seccion-formulario campo-completo">
+                        <div>
+                            <h2>Información académica</h2>
+                            <p>Tu carrera determina qué prácticas vas a ver disponibles.</p>
+                        </div>
+
+                        <div class="formulario-grid">
+                            <div class="campo campo-completo">
+                                <label for="carreraId">Carrera</label>
+                                <select id="carreraId" name="carreraId" required>
+                                    <option value="">Seleccioná una carrera</option>
+                                    <% carreras.forEach(carrera => { %>
+                                        <option value="<%= carrera.id %>" <%= String(alumno.carreraId || '') === String(carrera.id) ? 'selected' : '' %>><%= carrera.nombre %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+                <% } %>
+
+                <section class="seccion-formulario campo-completo">
+                    <div>
+                        <h2>Cambiar contraseña</h2>
+                        <p>Dejá estos campos vacíos si no querés modificarla.</p>
+                    </div>
+
+                    <div class="formulario-grid">
+                        <div class="campo campo-completo">
+                            <label for="passwordActual">Contraseña actual</label>
+                            <input id="passwordActual" type="password" name="passwordActual" autocomplete="current-password">
+                        </div>
+
+                        <div class="campo">
+                            <label for="passwordNueva">Nueva contraseña</label>
+                            <input id="passwordNueva" type="password" name="passwordNueva" minlength="8" autocomplete="new-password">
+                            <small>Mínimo 8 caracteres.</small>
+                        </div>
+
+                        <div class="campo">
+                            <label for="passwordConfirmacion">Confirmar contraseña</label>
+                            <input id="passwordConfirmacion" type="password" name="passwordConfirmacion" minlength="8" autocomplete="new-password">
+                        </div>
+                    </div>
+                </section>
+
+                <div class="formulario-acciones">
+                    <button class="boton" type="submit">Guardar cambios</button>
+                    <a class="boton boton-secundario" href="<%= profileBase %>/dashboard">Volver al panel</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+<% if (user.rol === 'PROFESOR') { %>
+    <script>
+        const carreraSelect = document.getElementById('carreraId');
+        const materiaSelect = document.getElementById('materiaId');
+        const materias = Array.from(materiaSelect.options).slice(1);
+
+        function filtrarMaterias() {
+            const carreraId = carreraSelect.value;
+
+            materias.forEach(option => {
+                const visible = option.dataset.carreraId === carreraId;
+                option.hidden = !visible;
+                option.disabled = !visible;
+            });
+
+            const seleccionada = materiaSelect.options[materiaSelect.selectedIndex];
+            if (seleccionada && seleccionada.value && seleccionada.disabled) {
+                materiaSelect.value = '';
+            }
+        }
+
+        carreraSelect.addEventListener('change', () => {
+            materiaSelect.value = '';
+            filtrarMaterias();
+        });
+        filtrarMaterias();
+    </script>
+<% } %>
+
+    <%- include('../partials/footer') %>

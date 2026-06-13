@@ -1,0 +1,96 @@
+<%- include('../partials/head', { title: 'Prácticas disponibles' }) %>
+<body>
+<div class="sitio">
+    <%- include('../partials/header', { active: 'disponibles' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Prácticas disponibles</h1>
+                    <p>Explorá las propuestas activas y consultá toda la información antes de inscribirte.</p>
+                </div>
+                <div class="acciones-superiores">
+                    <a class="boton boton-secundario" href="/alumno/dashboard">Volver al panel</a>
+                </div>
+            </header>
+
+            <% if (mensaje === 'carrera-no-corresponde') { %>
+                <div class="alerta" role="alert">La práctica solicitada pertenece a otra carrera y no está disponible para tu perfil.</div>
+            <% } %>
+
+            <% if (practicas.length > 0) { %>
+                <section class="grilla-practicas">
+                    <% practicas.forEach(practica => { %>
+                        <article class="tarjeta-practica" data-practica-id="<%= practica.id %>">
+                            <div>
+                                <% if (practica.cuposDisponibles > 0) { %>
+                                    <span class="estado estado-disponible" data-cupo-estado>Disponible</span>
+                                <% } else { %>
+                                    <span class="estado estado-inactiva" data-cupo-estado>Sin cupos</span>
+                                <% } %>
+                                <h2><%= practica.titulo %></h2>
+                                <p><%= practica.materia.nombre %> · <%= practica.materia.carrera.nombre %></p>
+                            </div>
+
+                            <div class="tarjeta-meta">
+                                <span><strong>Profesor:</strong> <%= practica.profesor.usuario.apellido %>, <%= practica.profesor.usuario.nombre %></span>
+                                <span><strong>Fecha:</strong> <%= practica.fechaInicio %></span>
+                                <span><strong>Lugar:</strong> <%= practica.lugar %></span>
+                                <span data-cupo-texto>
+                                    <strong>Cupos:</strong>
+                                    <%= practica.cuposDisponibles > 0 ? `${practica.cuposDisponibles} disponibles` : 'Sin cupos disponibles' %>
+                                </span>
+                            </div>
+
+                            <div class="tarjeta-acciones">
+                                <a class="boton boton-secundario" href="/practicas/<%= practica.id %>">Ver detalles</a>
+                            </div>
+                        </article>
+                    <% }) %>
+                </section>
+            <% } else { %>
+                <section class="vacio">
+                    <div class="vacio-icono" aria-hidden="true">P</div>
+                    <h2>No hay prácticas disponibles</h2>
+                    <p>Cuando se publique una nueva propuesta vas a encontrarla en esta sección.</p>
+                    <a class="boton boton-secundario" href="/alumno/dashboard">Volver al panel</a>
+                </section>
+            <% } %>
+        </div>
+    </main>
+
+    <script>
+        async function actualizarCupos() {
+            if (document.visibilityState !== 'visible') {
+                return;
+            }
+
+            try {
+                const response = await fetch('/practicas/cupos');
+                if (!response.ok) return;
+
+                const cupos = await response.json();
+
+                cupos.forEach(item => {
+                    const tarjeta = document.querySelector(`[data-practica-id="${item.id}"]`);
+                    if (!tarjeta) return;
+
+                    const estado = tarjeta.querySelector('[data-cupo-estado]');
+                    const texto = tarjeta.querySelector('[data-cupo-texto]');
+                    const disponible = item.disponibles > 0;
+
+                    estado.textContent = disponible ? 'Disponible' : 'Sin cupos';
+                    estado.classList.toggle('estado-disponible', disponible);
+                    estado.classList.toggle('estado-inactiva', !disponible);
+                    texto.innerHTML = `<strong>Cupos:</strong> ${disponible ? `${item.disponibles} disponibles` : 'Sin cupos disponibles'}`;
+                });
+            } catch (error) {
+                // La vista conserva el último valor renderizado si la actualización falla.
+            }
+        }
+
+        setInterval(actualizarCupos, 15000);
+    </script>
+
+    <%- include('../partials/footer') %>

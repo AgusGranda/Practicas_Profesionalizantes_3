@@ -1,0 +1,40 @@
+<%- include('../partials/head', { title: 'Panel del profesor' }) %>
+<body>
+<div class="sitio">
+    <%- include('../partials/header', { active: 'dashboard' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Hola, <%= user.nombre %></h1>
+                    <p>Administrá tus prácticas y mantené actualizada la información para los alumnos.</p>
+                </div>
+            </header>
+
+            <section class="grilla-panel" aria-label="Opciones del profesor">
+                <a class="tarjeta-acceso" href="/profesor/mis-practicas">
+                    <span class="tarjeta-icono" aria-hidden="true">MP</span>
+                    <h2>Mis prácticas</h2>
+                    <p>Consultá, editá o desactivá las prácticas que tenés publicadas.</p>
+                    <span class="tarjeta-enlace">Ver mis prácticas →</span>
+                </a>
+
+                <a class="tarjeta-acceso" href="/profesor/practicas/crear">
+                    <span class="tarjeta-icono" aria-hidden="true">+</span>
+                    <h2>Nueva práctica</h2>
+                    <p>Publicá una nueva propuesta con fechas, horarios, cupos y materia.</p>
+                    <span class="tarjeta-enlace">Crear práctica →</span>
+                </a>
+
+                <a class="tarjeta-acceso" href="/profesor/perfil">
+                    <span class="tarjeta-icono" aria-hidden="true">MP</span>
+                    <h2>Mi perfil</h2>
+                    <p>Actualizá tus datos personales o cambiá la contraseña de tu cuenta.</p>
+                    <span class="tarjeta-enlace">Editar mis datos →</span>
+                </a>
+            </section>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>

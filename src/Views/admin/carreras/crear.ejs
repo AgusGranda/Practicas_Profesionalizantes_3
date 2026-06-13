@@ -1,0 +1,38 @@
+<%- include('../../partials/head', { title: 'Nueva carrera' }) %>
+<body>
+<div class="sitio">
+    <%- include('../../partials/header', { active: 'carreras' }) %>
+
+    <main class="contenido">
+        <div class="contenido-estrecho">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Nueva carrera</h1>
+                    <p>Ingresá los datos principales de la nueva propuesta académica.</p>
+                </div>
+            </header>
+
+            <% if (error) { %>
+                <div class="alerta" role="alert"><%= error %></div>
+            <% } %>
+
+            <form class="formulario formulario-grid" action="/admin/carreras/crear" method="POST">
+                <div class="campo campo-completo">
+                    <label for="nombre">Nombre de la carrera</label>
+                    <input id="nombre" type="text" name="nombre" placeholder="Ej.: Tecnicatura en Desarrollo de Software" required autofocus>
+                </div>
+
+                <div class="campo campo-completo">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" placeholder="Describí brevemente el perfil y alcance de la carrera"></textarea>
+                </div>
+
+                <div class="formulario-acciones">
+                    <button class="boton" type="submit">Guardar carrera</button>
+                    <a class="boton boton-secundario" href="/admin/carreras">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <%- include('../../partials/footer') %>

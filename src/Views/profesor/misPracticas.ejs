@@ -1,0 +1,74 @@
+<%- include('../partials/head', { title: 'Mis prácticas' }) %>
+<body>
+<div class="sitio">
+    <%- include('../partials/header', { active: 'practicas' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Mis prácticas</h1>
+                    <p>Consultá y administrá todas las propuestas que publicaste.</p>
+                </div>
+                <div class="acciones-superiores">
+                    <a class="boton boton-secundario" href="/profesor/dashboard">Volver al panel</a>
+                    <a class="boton" href="/profesor/practicas/crear">Nueva práctica</a>
+                </div>
+            </header>
+
+            <% if (practicas.length > 0) { %>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Práctica</th>
+                                <th>Fecha y horario</th>
+                                <th>Lugar</th>
+                                <th>Cupo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% practicas.forEach(practica => { %>
+                                <tr>
+                                    <td>
+                                        <div class="celda-principal"><%= practica.titulo %></div>
+                                        <div class="celda-secundaria"><%= practica.materia.nombre %> · <%= practica.materia.carrera.nombre %></div>
+                                    </td>
+                                    <td>
+                                        <div><%= practica.fechaInicio %></div>
+                                        <div class="celda-secundaria"><%= practica.horarioInicio %> a <%= practica.horarioFin %></div>
+                                    </td>
+                                    <td><%= practica.lugar %></td>
+                                    <td><%= practica.cupo %></td>
+                                    <td>
+                                        <span class="estado estado-<%= practica.estado.toLowerCase() %>"><%= practica.estado.toLowerCase() %></span>
+                                    </td>
+                                    <td>
+                                        <div class="acciones-tabla">
+                                            <a class="boton boton-secundario boton-chico" href="/profesor/practicas/<%= practica.id %>/editar">Editar</a>
+                                            <% if (practica.estado === 'ACTIVA') { %>
+                                                <form class="form-inline" action="/profesor/practicas/<%= practica.id %>?_method=DELETE" method="POST" onsubmit="return confirm('¿Desactivar esta práctica?')">
+                                                    <button class="boton boton-peligro boton-chico" type="submit">Desactivar</button>
+                                                </form>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <section class="vacio">
+                    <div class="vacio-icono" aria-hidden="true">+</div>
+                    <h2>Todavía no publicaste prácticas</h2>
+                    <p>Creá tu primera propuesta para que los alumnos puedan conocerla.</p>
+                    <a class="boton" href="/profesor/practicas/crear">Crear práctica</a>
+                </section>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>

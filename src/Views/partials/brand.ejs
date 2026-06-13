@@ -1,0 +1,9 @@
+<a class="marca" href="<%= locals.user ? (user.rol === 'ADMIN' ? '/admin/dashboard' : user.rol === 'PROFESOR' ? '/profesor/dashboard' : '/alumno/dashboard') : '/auth/login' %>">
+    <span class="marca-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 7.5 12 3l8 4.5-8 4.5-8-4.5Z"/>
+            <path d="M7 10v5.5c2.8 2 7.2 2 10 0V10"/>
+        </svg>
+    </span>
+    <span>Gestión de Prácticas</span>
+</a>

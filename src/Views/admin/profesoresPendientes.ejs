@@ -1,0 +1,72 @@
+<%- include('../partials/head', { title: 'Profesores pendientes' }) %>
+<body>
+<div class="sitio">
+    <%- include('../partials/header', { active: 'profesores' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Profesores pendientes</h1>
+                    <p>Revisá las solicitudes de registro antes de habilitar el acceso docente.</p>
+                </div>
+                <div class="acciones-superiores">
+                    <a class="boton boton-secundario" href="/admin/dashboard">Volver al panel</a>
+                </div>
+            </header>
+
+            <% if (error) { %>
+                <div class="alerta" role="alert"><%= error %></div>
+            <% } %>
+
+            <% if (profesores.length > 0) { %>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Profesor</th>
+                                <th>Correo electrónico</th>
+                                <th>Carrera y materia</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% profesores.forEach(profesor => { %>
+                                <tr>
+                                    <td>
+                                        <div class="celda-principal"><%= profesor.usuario.apellido %>, <%= profesor.usuario.nombre %></div>
+                                    </td>
+                                    <td><%= profesor.usuario.email %></td>
+                                    <td>
+                                        <div class="celda-principal"><%= profesor.carrera ? profesor.carrera.nombre : 'Sin carrera asignada' %></div>
+                                        <div class="celda-secundaria"><%= profesor.materia ? profesor.materia.nombre : 'Sin materia asignada' %></div>
+                                    </td>
+                                    <td><span class="estado estado-pendiente">Pendiente</span></td>
+                                    <td>
+                                        <div class="acciones-tabla">
+                                            <form class="form-inline" action="/admin/profesores/<%= profesor.id %>/aprobar" method="POST">
+                                                <button class="boton boton-chico" type="submit">Aprobar</button>
+                                            </form>
+                                            <form class="form-inline" action="/admin/profesores/<%= profesor.id %>/rechazar" method="POST" onsubmit="return confirm('¿Rechazar la solicitud de este profesor?')">
+                                                <button class="boton boton-peligro boton-chico" type="submit">Rechazar</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <section class="vacio">
+                    <div class="vacio-icono" aria-hidden="true">✓</div>
+                    <h2>No hay solicitudes pendientes</h2>
+                    <p>Todos los registros de profesores fueron revisados.</p>
+                    <a class="boton boton-secundario" href="/admin/dashboard">Volver al panel</a>
+                </section>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>

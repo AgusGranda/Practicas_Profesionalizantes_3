@@ -1,120 +1,198 @@
-const store = require('../Data/store');
-const { generarComprobantePdf } = require('../Services/comprobantePdfService');
-const { enviarComprobanteInscripcion } = require('../Services/mailService');
+const {
+  Alumno,
+  Usuario,
+  Inscripcion,
+  Practica,
+  Materia,
+  Carrera,
+  Profesor,
+  sequelize
+} = require('../Data/models');
+const {
+  generarComprobantePdf
+} = require('../Services/comprobantePdfService');
 
-async function requiereAlumno(req, res) {
-    if (!req.session.usuario) {
-        res.redirect('/login');
-        return null;
-    }
-
-    if (req.session.usuario.rol !== 'ALUMNO') {
-        res.status(403).send('Solo los alumnos pueden inscribirse a una practica.');
-        return null;
-    }
-
-    return store.getAlumnoById(req.session.usuario.alumnoId);
-}
-
-exports.index = (req, res) => {
-    res.redirect('/practicas');
-};
-
-exports.form = async (req, res) => {
-    const alumno = await requiereAlumno(req, res);
-    if (!alumno) return;
-
-    const inscripcionExistente = await store.getInscripcionActivaPorAlumno(alumno.id);
-    if (inscripcionExistente) {
-        return res.redirect(`/inscripcion/comprobante/${inscripcionExistente.id}`);
-    }
-
-    const grupoBase = await store.getGrupoById(req.params.grupoId);
-    if (!grupoBase) {
-        return res.status(404).send('No se encontro la practica seleccionada.');
-    }
-
-    const grupo = await store.buildGrupoDetalle(grupoBase);
-
-    res.render('inscripcion', {
-        titulo: 'Confirmar inscripcion',
-        alumno,
-        grupo,
-        error: null
-    });
-};
-
-exports.create = async (req, res) => {
-    const alumno = await requiereAlumno(req, res);
-    if (!alumno) return;
-
-    const grupoBase = await store.getGrupoById(req.params.grupoId);
-    if (!grupoBase) {
-        return res.status(404).send('No se encontro la practica seleccionada.');
-    }
-
-    const grupo = await store.buildGrupoDetalle(grupoBase);
-
+const inscripcionController = {
+  inscribirse: async (req, res) => {
     try {
-        await store.actualizarAlumno(alumno.id, {
-            apellidoNombre: req.body.apellidoNombre,
-            fechaNacimiento: req.body.fechaNacimiento,
-            email: req.body.email,
-            telefono: req.body.telefono
+      const alumno = await Alumno.findOne({
+        where: { usuarioId: req.session.user.id }
+      });
+
+      if (!alumno) {
+        return res.status(403).send('Solo los alumnos pueden inscribirse');
+      }
+
+      if (!alumno.carreraId) {
+        return res.redirect('/alumno/perfil?completarCarrera=1');
+      }
+
+      const resultado = await sequelize.transaction(async (transaction) => {
+        const practica = await Practica.findByPk(req.params.practicaId, {
+          include: [{
+            model: Materia,
+            as: 'materia',
+            attributes: ['carreraId']
+          }],
+          transaction,
+          lock: transaction.LOCK.UPDATE
         });
 
-        const inscripcion = await store.crearInscripcion(alumno.id, grupo.id);
-        const detalle = await store.getInscripcionDetalle(inscripcion.id);
-        await enviarComprobanteInscripcion(detalle);
-        return res.redirect(`/inscripcion/comprobante/${inscripcion.id}`);
+        if (!practica || practica.estado !== 'ACTIVA') {
+          return 'no_disponible';
+        }
+
+        if (practica.materia.carreraId !== alumno.carreraId) {
+          return 'carrera_no_corresponde';
+        }
+
+        const yaInscripto = await Inscripcion.findOne({
+          where: {
+            alumnoId: alumno.id,
+            practicaId: practica.id
+          },
+          transaction
+        });
+
+        if (yaInscripto && yaInscripto.estado === 'ACTIVA') {
+          return 'ya_inscripto';
+        }
+
+        const inscripcionesActivas = await Inscripcion.count({
+          where: {
+            practicaId: practica.id,
+            estado: 'ACTIVA'
+          },
+          transaction
+        });
+
+        if (inscripcionesActivas >= practica.cupo) {
+          return 'sin_cupo';
+        }
+
+        if (yaInscripto) {
+          await yaInscripto.update({
+            estado: 'ACTIVA',
+            fechaInscripcion: new Date()
+          }, { transaction });
+        } else {
+          await Inscripcion.create({
+            alumnoId: alumno.id,
+            practicaId: practica.id,
+            estado: 'ACTIVA',
+            certificadoEnviado: false
+          }, { transaction });
+        }
+
+        return 'inscripto';
+      });
+
+      const mensajes = {
+        ya_inscripto: 'ya-inscripto',
+        sin_cupo: 'sin-cupo',
+        no_disponible: 'no-disponible',
+        carrera_no_corresponde: 'carrera-no-corresponde'
+      };
+
+      if (resultado !== 'inscripto') {
+        if (resultado === 'carrera_no_corresponde') {
+          return res.redirect(
+            '/alumno/practicas-disponibles?mensaje=carrera-no-corresponde'
+          );
+        }
+
+        return res.redirect(
+          `/practicas/${req.params.practicaId}?mensaje=${mensajes[resultado]}`
+        );
+      }
+
+      return res.redirect('/alumno/mis-inscripciones?mensaje=inscripcion-ok');
     } catch (error) {
-        return res.status(400).render('inscripcion', {
-            titulo: 'Confirmar inscripcion',
-            alumno,
-            grupo,
-            error: error.message
-        });
+      console.error(error);
+      return res.redirect(
+        `/practicas/${req.params.practicaId}?mensaje=error-inscripcion`
+      );
     }
-};
+  },
 
-exports.comprobante = async (req, res) => {
-    const detalle = await store.getInscripcionDetalle(req.params.id);
-
-    if (!detalle) {
-        return res.status(404).send('No se encontro el comprobante solicitado.');
-    }
-
-    const usuario = req.session.usuario;
-    const esAlumnoTitular = usuario && usuario.alumnoId === detalle.alumnoId;
-    const puedeVer = usuario && ['ADMIN', 'PRECEPTOR'].includes(usuario.rol);
-
-    if (!esAlumnoTitular && !puedeVer) {
-        return res.status(403).send('No tenes permiso para ver este comprobante.');
-    }
-
-    return res.render('comprobante', {
-        titulo: 'Comprobante de inscripcion',
-        inscripcion: detalle
+  cancelar: async (req, res) => {
+    const alumno = await Alumno.findOne({
+      where: { usuarioId: req.session.user.id }
     });
-};
 
-exports.comprobantePdf = async (req, res) => {
-    const detalle = await store.getInscripcionDetalle(req.params.id);
-
-    if (!detalle) {
-        return res.status(404).send('No se encontro el comprobante solicitado.');
+    if (!alumno) {
+      return res.status(403).send('Solo los alumnos pueden cancelar inscripciones');
     }
 
-    const usuario = req.session.usuario;
-    const esAlumnoTitular = usuario && usuario.alumnoId === detalle.alumnoId;
-    const puedeVer = usuario && ['ADMIN', 'PRECEPTOR'].includes(usuario.rol);
+    await Inscripcion.update(
+      { estado: 'CANCELADA' },
+      {
+        where: {
+          id: req.params.id,
+          alumnoId: alumno.id
+        }
+      }
+    );
 
-    if (!esAlumnoTitular && !puedeVer) {
-        return res.status(403).send('No tenes permiso para ver este comprobante.');
+    return res.redirect('/alumno/mis-inscripciones?mensaje=cancelacion-ok');
+  },
+
+  descargarComprobante: async (req, res) => {
+    try {
+      const alumno = await Alumno.findOne({
+        where: { usuarioId: req.session.user.id }
+      });
+
+      const inscripcion = await Inscripcion.findOne({
+        where: {
+          id: req.params.id,
+          alumnoId: alumno.id
+        },
+        include: [
+          {
+            model: Alumno,
+            as: 'alumno',
+            include: [{ model: Usuario, as: 'usuario' }]
+          },
+          {
+            model: Practica,
+            as: 'practica',
+            include: [
+              {
+                model: Materia,
+                as: 'materia',
+                include: [{ model: Carrera, as: 'carrera' }]
+              },
+              {
+                model: Profesor,
+                as: 'profesor',
+                include: [{ model: Usuario, as: 'usuario' }]
+              }
+            ]
+          }
+        ]
+      });
+
+      if (!inscripcion) {
+        return res.status(404).send('Inscripción no encontrada');
+      }
+
+      const pdf = await generarComprobantePdf(inscripcion);
+      const filename = `comprobante-inscripcion-${inscripcion.id}.pdf`;
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${filename}"`
+      );
+      res.setHeader('Content-Length', pdf.length);
+
+      return res.send(pdf);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).send('No se pudo generar el comprobante');
     }
-
-    const pdf = generarComprobantePdf(detalle);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="comprobante-inscripcion-${detalle.id}.pdf"`);
-    res.send(pdf);
+  }
 };
+
+module.exports = inscripcionController;

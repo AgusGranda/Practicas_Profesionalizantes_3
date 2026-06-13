@@ -1,0 +1,40 @@
+<%- include('../partials/head', { title: 'Panel del alumno' }) %>
+<body>
+<div class="sitio">
+    <%- include('../partials/header', { active: 'dashboard' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Hola, <%= user.nombre %></h1>
+                    <p>Explorá oportunidades de formación y seguí el estado de tus inscripciones.</p>
+                </div>
+            </header>
+
+            <section class="grilla-panel" aria-label="Opciones del alumno">
+                <a class="tarjeta-acceso" href="/alumno/practicas-disponibles">
+                    <span class="tarjeta-icono" aria-hidden="true">P</span>
+                    <h2>Prácticas disponibles</h2>
+                    <p>Descubrí las propuestas activas para las distintas carreras y materias.</p>
+                    <span class="tarjeta-enlace">Explorar prácticas →</span>
+                </a>
+
+                <a class="tarjeta-acceso" href="/alumno/mis-inscripciones">
+                    <span class="tarjeta-icono" aria-hidden="true">I</span>
+                    <h2>Mis inscripciones</h2>
+                    <p>Consultá las prácticas en las que te anotaste y su estado actual.</p>
+                    <span class="tarjeta-enlace">Ver inscripciones →</span>
+                </a>
+
+                <a class="tarjeta-acceso" href="/alumno/perfil">
+                    <span class="tarjeta-icono" aria-hidden="true">MP</span>
+                    <h2>Mi perfil</h2>
+                    <p>Actualizá tus datos personales o cambiá la contraseña de tu cuenta.</p>
+                    <span class="tarjeta-enlace">Editar mis datos →</span>
+                </a>
+            </section>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>

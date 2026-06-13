@@ -1,0 +1,164 @@
+<%- include('../partials/head', { title: 'Crear cuenta' }) %>
+<body>
+    <main class="auth-pagina auth-registro">
+        <section class="auth-panel">
+            <%- include('../partials/brand') %>
+
+            <div class="auth-contenido">
+                <h1>Creá tu cuenta</h1>
+                <p>Completá tus datos para comenzar a utilizar la plataforma.</p>
+
+                <form class="auth-formulario" action="/auth/register" method="POST">
+                    <% if (error) { %>
+                        <div class="alerta" role="alert"><%= error %></div>
+                    <% } %>
+
+                    <div class="campo">
+                        <label for="dni">DNI</label>
+                        <input id="dni" type="text" name="dni" value="<%= formData.dni || '' %>" inputmode="numeric" autocomplete="username" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="password">Contraseña</label>
+                        <input id="password" type="password" name="password" minlength="8" autocomplete="new-password" required>
+                        <small>Mínimo 8 caracteres.</small>
+                    </div>
+
+                    <div class="campo">
+                        <label for="apellido">Apellido</label>
+                        <input id="apellido" type="text" name="apellido" value="<%= formData.apellido || '' %>" autocomplete="family-name" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="nombre">Nombre</label>
+                        <input id="nombre" type="text" name="nombre" value="<%= formData.nombre || '' %>" autocomplete="given-name" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="email">Correo electrónico</label>
+                        <input id="email" type="email" name="email" value="<%= formData.email || '' %>" autocomplete="email" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="celular">Celular</label>
+                        <input id="celular" type="tel" name="celular" value="<%= formData.celular || '' %>" autocomplete="tel">
+                    </div>
+
+                    <div class="campo">
+                        <label for="fechaNacimiento">Fecha de nacimiento</label>
+                        <input id="fechaNacimiento" type="date" name="fechaNacimiento" value="<%= formData.fechaNacimiento || '' %>">
+                    </div>
+
+                    <div class="campo">
+                        <label for="genero">Género</label>
+                        <select id="genero" name="genero">
+                            <option value="" <%= !formData.genero ? 'selected' : '' %>>Prefiero no indicarlo</option>
+                            <option value="FEMENINO" <%= formData.genero === 'FEMENINO' ? 'selected' : '' %>>Femenino</option>
+                            <option value="MASCULINO" <%= formData.genero === 'MASCULINO' ? 'selected' : '' %>>Masculino</option>
+                            <option value="OTRO" <%= formData.genero === 'OTRO' ? 'selected' : '' %>>Otro</option>
+                        </select>
+                    </div>
+
+                    <label class="registro-profesor campo-completo">
+                        <input id="solicitaSerProfesor" type="checkbox" name="solicitaSerProfesor" <%= formData.solicitaSerProfesor === 'on' ? 'checked' : '' %>>
+                        <span>
+                            <strong>Quiero registrarme como profesor</strong>
+                            Tu cuenta quedará pendiente hasta que un administrador la apruebe.
+                        </span>
+                    </label>
+
+                    <section class="datos-profesor campo-completo">
+                        <div class="datos-profesor-cabecera">
+                            <h2>Información académica</h2>
+                            <p>Seleccioná tu carrera. Si sos profesor, indicá también la materia que dictás.</p>
+                        </div>
+
+                        <div class="formulario-grid">
+                            <div class="campo">
+                                <label for="carreraId">Carrera</label>
+                                <select id="carreraId" name="carreraId" required>
+                                    <option value="">Seleccioná una carrera</option>
+                                    <% carreras.forEach(carrera => { %>
+                                        <option value="<%= carrera.id %>" <%= String(formData.carreraId || '') === String(carrera.id) ? 'selected' : '' %>><%= carrera.nombre %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+
+                            <div id="materiaProfesor" class="campo <%= formData.solicitaSerProfesor === 'on' ? '' : 'oculto' %>">
+                                <label for="materiaId">Materia</label>
+                                <select id="materiaId" name="materiaId">
+                                    <option value="">Seleccioná una materia</option>
+                                    <% materias.forEach(materia => { %>
+                                        <option
+                                            value="<%= materia.id %>"
+                                            data-carrera-id="<%= materia.carreraId %>"
+                                            <%= String(formData.materiaId || '') === String(materia.id) ? 'selected' : '' %>>
+                                            <%= materia.nombre %>
+                                        </option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <button class="boton" type="submit">Crear cuenta</button>
+
+                    <p class="auth-ayuda">
+                        ¿Ya tenés una cuenta?
+                        <a href="/auth/login">Volver al ingreso</a>
+                    </p>
+                </form>
+            </div>
+        </section>
+
+        <aside class="auth-visual" aria-hidden="true">
+            <div class="auth-mensaje">
+                <h2>Una plataforma para cada etapa.</h2>
+                <p>Alumnos, profesores y administradores trabajan en un mismo lugar, de forma simple y ordenada.</p>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        const profesorCheckbox = document.getElementById('solicitaSerProfesor');
+        const materiaProfesor = document.getElementById('materiaProfesor');
+        const carreraSelect = document.getElementById('carreraId');
+        const materiaSelect = document.getElementById('materiaId');
+        const materias = Array.from(materiaSelect.options).slice(1);
+
+        function filtrarMaterias() {
+            const carreraId = carreraSelect.value;
+
+            materias.forEach(option => {
+                const visible = option.dataset.carreraId === carreraId;
+                option.hidden = !visible;
+                option.disabled = !visible;
+            });
+
+            const seleccionada = materiaSelect.options[materiaSelect.selectedIndex];
+            if (seleccionada && seleccionada.value && seleccionada.disabled) {
+                materiaSelect.value = '';
+            }
+        }
+
+        function actualizarDatosProfesor() {
+            const esProfesor = profesorCheckbox.checked;
+            materiaProfesor.classList.toggle('oculto', !esProfesor);
+            materiaSelect.required = esProfesor;
+
+            if (!esProfesor) {
+                materiaSelect.value = '';
+            }
+
+            filtrarMaterias();
+        }
+
+        profesorCheckbox.addEventListener('change', actualizarDatosProfesor);
+        carreraSelect.addEventListener('change', () => {
+            materiaSelect.value = '';
+            filtrarMaterias();
+        });
+        actualizarDatosProfesor();
+    </script>
+</body>
+</html>

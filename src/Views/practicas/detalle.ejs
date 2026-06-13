@@ -1,0 +1,141 @@
+<%- include('../partials/head', { title: practica.titulo }) %>
+<body>
+<div class="sitio">
+    <%- include('../partials/header', { active: 'disponibles' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <div class="acciones-superiores no-print">
+                <a class="boton boton-secundario boton-chico" href="<%= locals.user && user.rol === 'ALUMNO' ? '/alumno/practicas-disponibles' : '/practicas' %>">← Volver al listado</a>
+            </div>
+
+            <section class="detalle-hero">
+                <% if (practica.cuposDisponibles > 0) { %>
+                    <span class="estado estado-disponible">Práctica disponible</span>
+                <% } else { %>
+                    <span class="estado estado-inactiva">Sin cupos</span>
+                <% } %>
+                <h1><%= practica.titulo %></h1>
+                <p><%= practica.descripcion || 'Esta práctica todavía no cuenta con una descripción ampliada.' %></p>
+            </section>
+
+            <div class="detalle-grid">
+                <section class="detalle">
+                    <h2>Información de la práctica</h2>
+                    <p class="texto-suave">Revisá los datos de cursada y la información académica.</p>
+
+                    <dl class="lista-datos">
+                        <div>
+                            <dt>Carrera</dt>
+                            <dd><%= practica.materia.carrera.nombre %></dd>
+                        </div>
+                        <div>
+                            <dt>Materia</dt>
+                            <dd><%= practica.materia.nombre %></dd>
+                        </div>
+                        <div>
+                            <dt>Profesor</dt>
+                            <dd><%= practica.profesor.usuario.apellido %>, <%= practica.profesor.usuario.nombre %></dd>
+                        </div>
+                        <div>
+                            <dt>Lugar</dt>
+                            <dd><%= practica.lugar %></dd>
+                        </div>
+                        <div>
+                            <dt>Fecha de inicio</dt>
+                            <dd><%= practica.fechaInicio %></dd>
+                        </div>
+                        <div>
+                            <dt>Fecha de finalización</dt>
+                            <dd><%= practica.fechaFin || 'No especificada' %></dd>
+                        </div>
+                        <div>
+                            <dt>Horario</dt>
+                            <dd><%= practica.horarioInicio %> a <%= practica.horarioFin %></dd>
+                        </div>
+                        <div>
+                            <dt>Días</dt>
+                            <dd class="etiquetas">
+                                <% if (practica.dias && practica.dias.length > 0) { %>
+                                    <% practica.dias.forEach(item => { %>
+                                        <span class="etiqueta"><%= item.dia.nombre %></span>
+                                    <% }) %>
+                                <% } else { %>
+                                    <span>No especificados</span>
+                                <% } %>
+                            </dd>
+                        </div>
+                        <div class="campo-completo">
+                            <dt>Observaciones</dt>
+                            <dd><%= practica.observaciones || 'Sin observaciones adicionales' %></dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <aside class="panel caja-accion">
+                    <p class="numero"><%= practica.cuposDisponibles %></p>
+                    <p class="texto-suave"><%= practica.cuposDisponibles === 1 ? 'cupo disponible' : 'cupos disponibles' %> de <%= practica.cupo %> totales</p>
+
+                    <% if (locals.user && user.rol === 'ALUMNO') { %>
+                        <% if (estaInscripto) { %>
+                            <button class="boton boton-secundario" type="button" disabled>Ya estás inscripto</button>
+                        <% } else if (practica.cuposDisponibles > 0) { %>
+                            <form action="/inscripcion/practica/<%= practica.id %>" method="POST">
+                                <button class="boton" type="submit">Inscribirme ahora</button>
+                            </form>
+                        <% } else { %>
+                            <button class="boton boton-secundario" type="button" disabled>Sin cupos disponibles</button>
+                        <% } %>
+                    <% } else if (!locals.user) { %>
+                        <a class="boton" href="/auth/login">Ingresar para inscribirme</a>
+                        <p class="texto-suave">Necesitás una cuenta de alumno para completar la inscripción.</p>
+                    <% } else { %>
+                        <p class="texto-suave">La inscripción está disponible para usuarios con perfil de alumno.</p>
+                    <% } %>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <% if (mensaje) { %>
+        <%
+            const mensajes = {
+                'ya-inscripto': {
+                    titulo: 'Ya estás inscripto',
+                    texto: 'Tu inscripción a esta práctica ya se encuentra activa.'
+                },
+                'sin-cupo': {
+                    titulo: 'Sin cupos disponibles',
+                    texto: 'El último cupo fue ocupado. Podés consultar otras prácticas disponibles.'
+                },
+                'no-disponible': {
+                    titulo: 'Práctica no disponible',
+                    texto: 'Esta práctica ya no se encuentra disponible para inscripciones.'
+                },
+                'error-inscripcion': {
+                    titulo: 'No pudimos inscribirte',
+                    texto: 'Ocurrió un problema al procesar la inscripción. Intentá nuevamente.'
+                }
+            };
+            const mensajeActual = mensajes[mensaje] || mensajes['error-inscripcion'];
+        %>
+        <dialog id="modalMensaje" class="modal-mensaje">
+            <div class="modal-icono" aria-hidden="true">i</div>
+            <h2><%= mensajeActual.titulo %></h2>
+            <p><%= mensajeActual.texto %></p>
+            <form method="dialog">
+                <button class="boton" type="submit">Entendido</button>
+            </form>
+        </dialog>
+        <script>
+            const modalMensaje = document.getElementById('modalMensaje');
+            modalMensaje.showModal();
+            modalMensaje.addEventListener('click', event => {
+                if (event.target === modalMensaje) {
+                    modalMensaje.close();
+                }
+            });
+        </script>
+    <% } %>
+
+    <%- include('../partials/footer') %>

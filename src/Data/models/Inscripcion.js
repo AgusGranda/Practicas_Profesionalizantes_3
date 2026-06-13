@@ -1,20 +1,55 @@
 'use strict';
 
 module.exports = (sequelize, DataTypes) => {
-    const Inscripcion = sequelize.define('Inscripcion', {
-        alumnoId: DataTypes.INTEGER,
-        grupoPracticaId: DataTypes.INTEGER,
-        fechaInscripcion: DataTypes.DATE,
-        estado: DataTypes.ENUM('INSCRIPTO', 'EN_ESPERA', 'CANCELADO')
-    }, {
-        tableName: 'inscripciones',
-        timestamps: false
+  const Inscripcion = sequelize.define('Inscripcion', {
+    alumnoId: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
+    practicaId: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
+    fechaInscripcion: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW
+    },
+    estado: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'ACTIVA'
+    },
+    certificadoEnviado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    certificadoPath: {
+      type: DataTypes.STRING,
+      allowNull: true
+    }
+  }, {
+    tableName: 'inscripciones',
+    indexes: [
+      {
+        unique: true,
+        fields: ['alumnoId', 'practicaId']
+      }
+    ]
+  });
+
+  Inscripcion.associate = function(models) {
+    Inscripcion.belongsTo(models.Alumno, {
+      foreignKey: 'alumnoId',
+      as: 'alumno'
     });
 
-    Inscripcion.associate = (models) => {
-        Inscripcion.belongsTo(models.Alumno, { foreignKey: 'alumnoId', as: 'alumno' });
-        Inscripcion.belongsTo(models.GrupoPractica, { foreignKey: 'grupoPracticaId', as: 'grupoBase' });
-    };
+    Inscripcion.belongsTo(models.Practica, {
+      foreignKey: 'practicaId',
+      as: 'practica'
+    });
+  };
 
-    return Inscripcion;
+  return Inscripcion;
 };

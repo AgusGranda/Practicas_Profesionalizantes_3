@@ -1,75 +1,94 @@
-const store = require('../Data/store');
+const {
+  Alumno,
+  Practica,
+  Materia,
+  Carrera,
+  Profesor,
+  Usuario,
+  Inscripcion
+} = require('../Data/models');
+const {
+  agregarCuposDisponibles
+} = require('../Services/cupoService');
 
-async function requiereAlumno(req, res) {
-    const usuario = req.session.usuario;
+const alumnoController = {
+  dashboard: (req, res) => {
+    res.render('alumno/dashboard');
+  },
 
-    if (!usuario || usuario.rol !== 'ALUMNO') {
-        res.redirect('/login');
-        return null;
+  practicasDisponibles: async (req, res) => {
+    const alumno = await Alumno.findOne({
+      where: { usuarioId: req.session.user.id }
+    });
+
+    if (!alumno || !alumno.carreraId) {
+      return res.redirect('/alumno/perfil?completarCarrera=1');
     }
 
-    return store.getAlumnoById(usuario.alumnoId);
-}
-
-exports.index = async (req, res) => {
-    const alumno = await requiereAlumno(req, res);
-    if (!alumno) return;
-
-    const inscripcion = await store.getInscripcionActivaPorAlumno(alumno.id);
-    const detalle = inscripcion ? await store.getInscripcionDetalle(inscripcion.id) : null;
-
-    res.render('alumno', {
-        titulo: 'Mi perfil',
-        alumno,
-        carreras: await store.getCarreras(),
-        inscripcion: detalle,
-        exito: null,
-        error: null
-    });
-};
-
-exports.actualizarPerfil = async (req, res) => {
-    const alumnoActual = await requiereAlumno(req, res);
-    if (!alumnoActual) return;
-
-    const alumno = await store.actualizarAlumno(alumnoActual.id, {
-        apellidoNombre: req.body.apellidoNombre,
-        fechaNacimiento: req.body.fechaNacimiento,
-        email: req.body.email,
-        telefono: req.body.telefono,
-        carreraId: req.body.carreraId,
-        anio: req.body.anio
+    const practicas = await Practica.findAll({
+      where: { estado: 'ACTIVA' },
+      include: [
+        {
+          model: Materia,
+          as: 'materia',
+          where: {
+            carreraId: alumno.carreraId,
+            estado: 'ACTIVA'
+          },
+          include: [{ model: Carrera, as: 'carrera' }]
+        },
+        {
+          model: Profesor,
+          as: 'profesor',
+          include: [{ model: Usuario, as: 'usuario' }]
+        },
+        {
+          model: Inscripcion,
+          as: 'inscripciones',
+          attributes: ['id'],
+          where: { estado: 'ACTIVA' },
+          required: false
+        }
+      ],
+      order: [['fechaInicio', 'ASC']]
     });
 
-    const inscripcion = await store.getInscripcionActivaPorAlumno(alumno.id);
-    const detalle = inscripcion ? await store.getInscripcionDetalle(inscripcion.id) : null;
+    agregarCuposDisponibles(practicas);
 
-    res.render('alumno', {
-        titulo: 'Mi perfil',
-        alumno,
-        carreras: await store.getCarreras(),
-        inscripcion: detalle,
-        exito: 'Tus datos fueron actualizados.',
-        error: null
+    return res.render('alumno/practicasDisponibles', {
+      practicas,
+      mensaje: req.query.mensaje || null
     });
+  },
+
+  misInscripciones: async (req, res) => {
+    const alumno = await Alumno.findOne({
+      where: { usuarioId: req.session.user.id }
+    });
+
+    const inscripciones = await Inscripcion.findAll({
+      where: { alumnoId: alumno.id },
+      include: [
+        {
+          model: Practica,
+          as: 'practica',
+          include: [
+            {
+              model: Materia,
+              as: 'materia',
+              include: [{ model: Carrera, as: 'carrera' }]
+            }
+          ]
+        }
+      ],
+      order: [['fechaInscripcion', 'DESC']]
+    });
+
+    res.render('alumno/misInscripciones', {
+      inscripciones,
+      mensaje: req.query.mensaje || null
+    });
+  }
 };
 
-exports.cancelarInscripcion = async (req, res) => {
-    const alumno = await requiereAlumno(req, res);
-    if (!alumno) return;
-
-    const inscripcion = await store.cancelarInscripcion(alumno.id, req.params.id);
-    if (!inscripcion) {
-        const activa = await store.getInscripcionActivaPorAlumno(alumno.id);
-        return res.status(404).render('alumno', {
-            titulo: 'Mi perfil',
-            alumno,
-            carreras: await store.getCarreras(),
-            inscripcion: activa ? await store.getInscripcionDetalle(activa.id) : null,
-            exito: null,
-            error: 'No se encontro una inscripcion activa para cancelar.'
-        });
-    }
-
-    res.redirect('/alumno');
-};
+module.exports = alumnoController;

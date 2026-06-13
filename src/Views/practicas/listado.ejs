@@ -1,0 +1,59 @@
+<%- include('../partials/head', { title: 'Prácticas disponibles' }) %>
+<body>
+<div class="sitio">
+    <%- include('../partials/header', { active: 'disponibles' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Prácticas disponibles</h1>
+                    <p>Conocé las oportunidades de formación profesional publicadas actualmente.</p>
+                </div>
+            </header>
+
+            <% if (practicas.length > 0) { %>
+                <section class="grilla-practicas">
+                    <% practicas.forEach(practica => { %>
+                        <article class="tarjeta-practica">
+                            <div>
+                                <% if (practica.cuposDisponibles > 0) { %>
+                                    <span class="estado estado-disponible">Disponible</span>
+                                <% } else { %>
+                                    <span class="estado estado-inactiva">Sin cupos</span>
+                                <% } %>
+                                <h2><%= practica.titulo %></h2>
+                                <p><%= practica.materia.nombre %> · <%= practica.materia.carrera.nombre %></p>
+                            </div>
+
+                            <div class="tarjeta-meta">
+                                <span><strong>Profesor:</strong> <%= practica.profesor.usuario.apellido %>, <%= practica.profesor.usuario.nombre %></span>
+                                <span><strong>Fecha:</strong> <%= practica.fechaInicio %></span>
+                                <span><strong>Horario:</strong> <%= practica.horarioInicio %> a <%= practica.horarioFin %></span>
+                                <span><strong>Lugar:</strong> <%= practica.lugar %></span>
+                                <span>
+                                    <strong>Cupos:</strong>
+                                    <%= practica.cuposDisponibles > 0 ? `${practica.cuposDisponibles} disponibles` : 'Sin cupos disponibles' %>
+                                </span>
+                            </div>
+
+                            <div class="tarjeta-acciones">
+                                <a class="boton boton-secundario" href="/practicas/<%= practica.id %>">Ver detalles</a>
+                            </div>
+                        </article>
+                    <% }) %>
+                </section>
+            <% } else { %>
+                <section class="vacio">
+                    <div class="vacio-icono" aria-hidden="true">P</div>
+                    <h2>No hay prácticas publicadas</h2>
+                    <p>Volvé pronto para conocer nuevas oportunidades.</p>
+                    <% if (!locals.user) { %>
+                        <a class="boton boton-secundario" href="/auth/login">Volver al ingreso</a>
+                    <% } %>
+                </section>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>

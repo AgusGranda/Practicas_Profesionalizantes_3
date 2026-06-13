@@ -1,0 +1,40 @@
+<%- include('../partials/head', { title: 'Panel de administración' }) %>
+<body>
+<div class="sitio">
+    <%- include('../partials/header', { active: 'dashboard' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Panel de administración</h1>
+                    <p>Gestioná la oferta académica y las solicitudes de nuevos profesores.</p>
+                </div>
+            </header>
+
+            <section class="grilla-panel" aria-label="Opciones de administración">
+                <a class="tarjeta-acceso" href="/admin/carreras">
+                    <span class="tarjeta-icono" aria-hidden="true">C</span>
+                    <h2>Carreras</h2>
+                    <p>Creá, editá y organizá las carreras disponibles en la institución.</p>
+                    <span class="tarjeta-enlace">Administrar carreras →</span>
+                </a>
+
+                <a class="tarjeta-acceso" href="/admin/materias">
+                    <span class="tarjeta-icono" aria-hidden="true">M</span>
+                    <h2>Materias</h2>
+                    <p>Gestioná las materias y su relación con cada carrera.</p>
+                    <span class="tarjeta-enlace">Administrar materias →</span>
+                </a>
+
+                <a class="tarjeta-acceso" href="/admin/profesores-pendientes">
+                    <span class="tarjeta-icono" aria-hidden="true">P</span>
+                    <h2>Profesores</h2>
+                    <p>Revisá las solicitudes pendientes y habilitá nuevos perfiles docentes.</p>
+                    <span class="tarjeta-enlace">Revisar solicitudes →</span>
+                </a>
+            </section>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>

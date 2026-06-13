@@ -1,0 +1,75 @@
+<%- include('../partials/head', { title: 'Mis inscripciones' }) %>
+<body>
+<div class="sitio">
+    <%- include('../partials/header', { active: 'inscripciones' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Mis inscripciones</h1>
+                    <p>Consultá el estado de tus solicitudes y accedé a los comprobantes disponibles.</p>
+                </div>
+                <div class="acciones-superiores">
+                    <a class="boton boton-secundario" href="/alumno/practicas-disponibles">Buscar prácticas</a>
+                </div>
+            </header>
+
+            <% if (mensaje === 'inscripcion-ok') { %>
+                <div class="alerta-exito" role="status">Tu inscripción se realizó correctamente. Ya podés descargar el comprobante.</div>
+            <% } else if (mensaje === 'cancelacion-ok') { %>
+                <div class="alerta-exito" role="status">La inscripción fue cancelada correctamente.</div>
+            <% } %>
+
+            <% if (inscripciones.length > 0) { %>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Práctica</th>
+                                <th>Fecha de inscripción</th>
+                                <th>Estado</th>
+                                <th>Comprobante</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% inscripciones.forEach(inscripcion => { %>
+                                <tr>
+                                    <td>
+                                        <div class="celda-principal"><%= inscripcion.practica.titulo %></div>
+                                        <div class="celda-secundaria"><%= inscripcion.practica.materia.nombre %> · <%= inscripcion.practica.materia.carrera.nombre %></div>
+                                    </td>
+                                    <td><%= inscripcion.fechaInscripcion %></td>
+                                    <td>
+                                        <span class="estado estado-<%= inscripcion.estado.toLowerCase() %>"><%= inscripcion.estado.toLowerCase() %></span>
+                                    </td>
+                                    <td>
+                                        <a class="boton boton-secundario boton-chico" href="/inscripcion/<%= inscripcion.id %>/comprobante">Descargar PDF</a>
+                                    </td>
+                                    <td>
+                                        <% if (inscripcion.estado === 'ACTIVA') { %>
+                                            <form class="form-inline" action="/inscripcion/<%= inscripcion.id %>?_method=DELETE" method="POST" onsubmit="return confirm('¿Cancelar tu inscripción a esta práctica?')">
+                                                <button class="boton boton-peligro boton-chico" type="submit">Cancelar</button>
+                                            </form>
+                                        <% } else { %>
+                                            <span class="celda-secundaria">Sin acciones</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <section class="vacio">
+                    <div class="vacio-icono" aria-hidden="true">I</div>
+                    <h2>Todavía no tenés inscripciones</h2>
+                    <p>Explorá las prácticas disponibles y elegí la propuesta que más te interese.</p>
+                    <a class="boton" href="/alumno/practicas-disponibles">Ver prácticas</a>
+                </section>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>

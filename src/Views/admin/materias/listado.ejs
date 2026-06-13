@@ -1,0 +1,67 @@
+<%- include('../../partials/head', { title: 'Materias' }) %>
+<body>
+<div class="sitio">
+    <%- include('../../partials/header', { active: 'materias' }) %>
+
+    <main class="contenido">
+        <div class="contenedor">
+            <header class="cabecera-pagina">
+                <div>
+                    <h1>Materias</h1>
+                    <p>Organizá las materias disponibles y su relación con cada carrera.</p>
+                </div>
+                <div class="acciones-superiores">
+                    <a class="boton boton-secundario" href="/admin/dashboard">Volver al panel</a>
+                    <a class="boton" href="/admin/materias/crear">Nueva materia</a>
+                </div>
+            </header>
+
+            <% if (materias.length > 0) { %>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Carrera</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% materias.forEach(materia => { %>
+                                <tr>
+                                    <td>
+                                        <div class="celda-principal"><%= materia.nombre %></div>
+                                        <div class="celda-secundaria"><%= materia.descripcion || 'Sin descripción' %></div>
+                                    </td>
+                                    <td><%= materia.carrera.nombre %></td>
+                                    <td>
+                                        <span class="estado estado-<%= materia.estado.toLowerCase() %>"><%= materia.estado.toLowerCase() %></span>
+                                    </td>
+                                    <td>
+                                        <div class="acciones-tabla">
+                                            <a class="boton boton-secundario boton-chico" href="/admin/materias/<%= materia.id %>/editar">Editar</a>
+                                            <% if (materia.estado === 'ACTIVA') { %>
+                                                <form class="form-inline" action="/admin/materias/<%= materia.id %>?_method=DELETE" method="POST" onsubmit="return confirm('¿Desactivar esta materia?')">
+                                                    <button class="boton boton-peligro boton-chico" type="submit">Desactivar</button>
+                                                </form>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <section class="vacio">
+                    <div class="vacio-icono" aria-hidden="true">M</div>
+                    <h2>Todavía no hay materias</h2>
+                    <p>Creá la primera materia para asociarla a una carrera.</p>
+                    <a class="boton" href="/admin/materias/crear">Crear materia</a>
+                </section>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('../../partials/footer') %>
